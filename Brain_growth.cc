@@ -147,7 +147,7 @@ namespace Brain_growth
 
 		
 	     double r = p.distance(Point<dim>(0.0,0.0));
-	     double H = (std::exp((r-dvision_raduis)*50))/(1.+std::exp((r-dvision_raduis)*50));
+	     double H = (std::exp((r-dvision_raduis)*20))/(1.+std::exp((r-dvision_raduis)*20));
 
              value(dim) = dvision_value*(1-H);
 		}
@@ -252,7 +252,7 @@ namespace Brain_growth
     void compute_delta_t();
       
     double compute_viscosity( PointHistory<dim> *lqph,
-                            const double cell_diameter) const;
+                            const double cell_diameter, const int cell_type) const;
 
     void output_results();
 
@@ -324,12 +324,6 @@ namespace Brain_growth
         NU = 3
       };
       
-      enum
-      {
-        GIP = 0,
-        GOR = 1,
-        GNU = 2
-      };
 
     std::vector<types::global_dof_index>        dofs_per_block;
     std::vector<types::global_dof_index>        element_indices_u;
@@ -436,14 +430,9 @@ namespace Brain_growth
     n_q_points (qf_cell.size()),
     n_q_points_f (qf_face.size())
   {
-     Assert((parameters.ventricular_raduis >= 0.2)||(parameters.ventricular_raduis <= (1-parameters.cortex_thickness)),
-                    ExcMessage("The dvision raduis must be biger than 0.2 and smaller than (1-cortex thickness)"));
-
-            Assert(dim == 2 || dim == 3,
-                 ExcMessage("This problem only works in 2 or 3 space dimensions."));
+            Assert(dim == 2 ,
+                 ExcMessage("This problem only works in 2D space dimensions."));
             determine_component_extractors();
-
-
   }
 
 
@@ -552,7 +541,7 @@ namespace Brain_growth
       :
       fe_values_ref(fe_cell, qf_cell, uf_cell),
       Nx_c(4, std::vector<std::vector<double> >(qf_cell.size(), std::vector<double>(fe_cell.dofs_per_cell))),
-      grad_Nx_c(3,  std::vector<std::vector<Tensor<1, dim> > >(qf_cell.size(), std::vector<Tensor<1, dim> > (fe_cell.dofs_per_cell))),
+      grad_Nx_c(4,  std::vector<std::vector<Tensor<1, dim> > >(qf_cell.size(), std::vector<Tensor<1, dim> > (fe_cell.dofs_per_cell))),
       grad_Nx_u(qf_cell.size(), std::vector<Tensor<2, dim> > (fe_cell.dofs_per_cell)),
       symm_grad_Nx_u(qf_cell.size(), std::vector<SymmetricTensor<2, dim> > (fe_cell.dofs_per_cell))
     {}
@@ -571,25 +560,24 @@ namespace Brain_growth
     void reset()
       {
         const unsigned int n_dofs_per_cell = Nx_c[0][0].size();
-        unsigned int ii=0, jj=0;
+        unsigned int ii=0;
         
         for (unsigned int q_point = 0; q_point < Nx_c[0].size(); ++q_point)
         {
             Assert( grad_Nx_u[q_point].size() == n_dofs_per_cell, ExcInternalError());
             Assert( symm_grad_Nx_u[q_point].size() == n_dofs_per_cell, ExcInternalError());
-            Assert( Nx_c[ii][q_point].size() == n_dofs_per_cell, ExcInternalError());
-            Assert( grad_Nx_c[jj][q_point].size() == n_dofs_per_cell,ExcInternalError());
+            Assert( Nx_c[0][q_point].size() == n_dofs_per_cell, ExcInternalError());
+            Assert( grad_Nx_c[0][q_point].size() == n_dofs_per_cell,ExcInternalError());
             
             for (unsigned int k = 0; k < Nx_c[0][0].size(); ++k)
             {
                 grad_Nx_u[q_point][k] = 0.0;
                 symm_grad_Nx_u[q_point][k] = 0.0;
                 
-                for (; ii < Nx_c.size(); ++ii)
+                for (; ii < Nx_c.size(); ++ii){
                     Nx_c[ii][q_point][k] = 0.0;
-                
-                for(; jj <  grad_Nx_c.size(); ++jj)
-                    grad_Nx_c[jj][q_point][k] = 0.0;
+                    grad_Nx_c[ii][q_point][k] = 0.0;
+                }
             }
         }
     }
@@ -713,10 +701,10 @@ template <int dim>
       fe_values_ref(fe_cell, qf_cell, uf_cell),
       fe_face_values_ref(fe_cell, qf_face, uf_face),
       Nx_c(4, std::vector<std::vector<double> >(qf_cell.size(), std::vector<double>(fe_cell.dofs_per_cell))),
-      grad_Nx_c(3,  std::vector<std::vector<Tensor<1, dim>> >(qf_cell.size(), std::vector<Tensor<1, dim> > (fe_cell.dofs_per_cell))),
+      grad_Nx_c(4,  std::vector<std::vector<Tensor<1, dim>> >(qf_cell.size(), std::vector<Tensor<1, dim> > (fe_cell.dofs_per_cell))),
       grad_Nx_u(qf_cell.size(), std::vector<Tensor<2, dim> > (fe_cell.dofs_per_cell)),
       symm_grad_Nx_u(qf_cell.size(), std::vector<SymmetricTensor<2, dim> > (fe_cell.dofs_per_cell))
-      {std::cout<<1<<"  ";}
+      {}
 
     ScratchData_RHS(const ScratchData_RHS &rhs)
       :
@@ -730,34 +718,26 @@ template <int dim>
       grad_Nx_c(rhs. grad_Nx_c),
       grad_Nx_u(rhs.grad_Nx_u),
       symm_grad_Nx_u(rhs.symm_grad_Nx_u)
-      {std::cout<<2<<"  ";}
+      {}
 
     void reset()
     {
         const unsigned int n_dofs_per_cell = Nx_c[0][0].size();
-        unsigned int ii=0, jj=0;
-        std::cout<<3<<"  ";
+        unsigned int ii=0;
         for (unsigned int q_point = 0; q_point < Nx_c[0].size(); ++q_point)
         {
             Assert( grad_Nx_u[q_point].size() == n_dofs_per_cell, ExcInternalError());
             Assert( symm_grad_Nx_u[q_point].size() == n_dofs_per_cell, ExcInternalError());
-            Assert( Nx_c[ii][q_point].size() == n_dofs_per_cell, ExcInternalError());
-            Assert( grad_Nx_c[jj][q_point].size() == n_dofs_per_cell,ExcInternalError());
-            std::cout<<4<<"  ";
+            Assert( Nx_c[0][q_point].size() == n_dofs_per_cell, ExcInternalError());
+            Assert( grad_Nx_c[0][q_point].size() == n_dofs_per_cell,ExcInternalError());
             for (unsigned int k = 0; k < Nx_c[0][0].size(); ++k)
             {
                 grad_Nx_u[q_point][k] = 0.0;
                 symm_grad_Nx_u[q_point][k] = 0.0;
-                std::cout<<5<<"  ";
                 
                 for (; ii < Nx_c.size(); ++ii){
                     Nx_c[ii][q_point][k] = 0.0;
-                    std::cout<<6<<"  ";
-                }
-                
-                for(; jj <  grad_Nx_c.size(); ++jj){
-                    grad_Nx_c[jj][q_point][k] = 0.0;
-                    std::cout<<7<<"  ";
+                    grad_Nx_c[ii][q_point][k] = 0.0;
                 }
             }
         }
@@ -820,7 +800,7 @@ template <int dim>
     std::vector<std::vector<Tensor<1, dim> > > solution_grads_c;
     std::vector<std::vector<double> >          solution_value_c;  //first vector for cell types and the second for qp
     std::vector<std::vector<double> >          old_solution_value_c;
-    std::vector<double>                       old_old_solution_value_c_n;
+    std::vector<std::vector<double> >          old_old_solution_value_c;
       
     bool                         update_growth;
     FEValues<dim>                fe_values_ref;
@@ -840,10 +820,10 @@ template <int dim>
       solution_grads_u(qf_cell.size()),
       old_solution_grads_u(qf_cell.size()),
       old_old_solution_grads_u(qf_cell.size()),
-      solution_grads_c(3, std::vector<Tensor<1,dim> >(qf_cell.size())), //  IP OR N
+      solution_grads_c(4, std::vector<Tensor<1,dim> >(qf_cell.size())), 
       solution_value_c(4, std::vector<double>(qf_cell.size())), // RG IP OR N
       old_solution_value_c(4, std::vector<double>(qf_cell.size())), // RG IP OR N
-      old_old_solution_value_c_n(qf_cell.size()),
+      old_old_solution_value_c(4, std::vector<double>(qf_cell.size())), // RG IP OR N
       update_growth(update),
       fe_values_ref(fe_cell, qf_cell, uf_cell)
       {}
@@ -859,7 +839,7 @@ template <int dim>
       solution_grads_c(rhs.solution_grads_c),
       solution_value_c(rhs.solution_value_c),
       old_solution_value_c(rhs.old_solution_value_c),
-      old_old_solution_value_c_n(rhs.old_old_solution_value_c_n),
+      old_old_solution_value_c(rhs.old_old_solution_value_c),
       update_growth (rhs.update_growth),
       fe_values_ref(rhs.fe_values_ref.get_fe(),
                     rhs.fe_values_ref.get_quadrature(),
@@ -868,20 +848,18 @@ template <int dim>
 
     void reset()
     {
-        unsigned int ii =0, jj=0;
+        unsigned int ii =0;
         for (unsigned int q = 0; q < solution_grads_u.size(); ++q)
         {
             solution_grads_u[q] = 0.0;
             old_solution_grads_u[q] = 0.0;
             old_old_solution_grads_u[q] = 0.0;
-            old_old_solution_value_c_n[q]=0.0;
         
-            for (; ii<solution_grads_c.size(); ++ii)
+            for (; ii<solution_grads_c.size(); ++ii){
                 solution_grads_c[ii][q] = 0.0;
-                 
-            for (; jj<solution_value_c.size(); ++jj){
-                solution_value_c[jj][q] = 0.0;
-                old_solution_value_c[jj][q] = 0.0;
+                solution_value_c[ii][q] = 0.0;
+                old_solution_value_c[ii][q] = 0.0;
+          	old_old_solution_value_c[ii][q]=0.0;
             }
 
         }
@@ -1136,19 +1114,12 @@ template <int dim>
     Assert(scratch.solution_grads_u.size() == n_q_points, ExcInternalError());
     Assert(scratch.old_solution_grads_u.size() == n_q_points, ExcInternalError());
     Assert(scratch.old_old_solution_grads_u.size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_grads_c[0].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_grads_c[1].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_grads_c[2].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_value_c[0].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_value_c[1].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_value_c[2].size() == n_q_points, ExcInternalError());
-    Assert(scratch.solution_value_c[3].size() == n_q_points, ExcInternalError());
-    Assert(scratch.old_solution_value_c[0].size() == n_q_points, ExcInternalError());
-    Assert(scratch.old_solution_value_c[1].size() == n_q_points, ExcInternalError());
-    Assert(scratch.old_solution_value_c[2].size() == n_q_points, ExcInternalError());
-    Assert(scratch.old_solution_value_c[3].size() == n_q_points, ExcInternalError());
-    Assert(scratch.old_old_solution_value_c_n.size() == n_q_points, ExcInternalError());
-
+    for (unsigned int i=0; i<4 ; ++i){
+	  Assert(scratch.solution_grads_c[i].size() == n_q_points, ExcInternalError());
+   	  Assert(scratch.solution_value_c[i].size() == n_q_points, ExcInternalError());
+	  Assert(scratch.old_solution_value_c[i].size() == n_q_points, ExcInternalError());
+	  Assert(scratch.old_old_solution_value_c[i].size() == n_q_points, ExcInternalError());
+	}
 
     scratch.reset();
 
@@ -1156,9 +1127,10 @@ template <int dim>
     scratch.fe_values_ref[u_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_u);
     scratch.fe_values_ref[u_fe].get_function_gradients(scratch.old_solution, scratch.old_solution_grads_u);
     scratch.fe_values_ref[u_fe].get_function_gradients(scratch.old_old_solution, scratch.old_old_solution_grads_u);
-    scratch.fe_values_ref[c_ip_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[GIP]);
-    scratch.fe_values_ref[c_or_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[GOR]);
-    scratch.fe_values_ref[c_n_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[GNU]);
+    scratch.fe_values_ref[c_rg_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[RG]);
+    scratch.fe_values_ref[c_ip_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[IP]);
+    scratch.fe_values_ref[c_or_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[OR]);
+    scratch.fe_values_ref[c_n_fe].get_function_gradients(scratch.solution_total, scratch.solution_grads_c[NU]);
     scratch.fe_values_ref[c_rg_fe].get_function_values(scratch.solution_total, scratch.solution_value_c[RG]);
     scratch.fe_values_ref[c_ip_fe].get_function_values(scratch.solution_total, scratch.solution_value_c[IP]);
     scratch.fe_values_ref[c_or_fe].get_function_values(scratch.solution_total, scratch.solution_value_c[OR]);
@@ -1167,26 +1139,30 @@ template <int dim>
     scratch.fe_values_ref[c_ip_fe].get_function_values(scratch.old_solution, scratch.old_solution_value_c[IP]);
     scratch.fe_values_ref[c_or_fe].get_function_values(scratch.old_solution, scratch.old_solution_value_c[OR]);
     scratch.fe_values_ref[c_n_fe].get_function_values(scratch.old_solution, scratch.old_solution_value_c[NU]);
-    scratch.fe_values_ref[c_n_fe].get_function_values(scratch.old_old_solution, scratch.old_old_solution_value_c_n);
+    scratch.fe_values_ref[c_rg_fe].get_function_values(scratch.old_old_solution, scratch.old_old_solution_value_c[RG]);
+    scratch.fe_values_ref[c_ip_fe].get_function_values(scratch.old_old_solution, scratch.old_old_solution_value_c[IP]);
+    scratch.fe_values_ref[c_or_fe].get_function_values(scratch.old_old_solution, scratch.old_old_solution_value_c[OR]);
+    scratch.fe_values_ref[c_n_fe].get_function_values(scratch.old_old_solution, scratch.old_old_solution_value_c[NU]);
 
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point){
-        std::vector<Tensor<1,dim>> grad_cell_density(3, Tensor<1,dim>());
+        std::vector<Tensor<1,dim>> grad_cell_density(4, Tensor<1,dim>());
         std::vector<double> cell_density_value(4, 0);
         std::vector<double> old_cell_density_vlaue(4, 0);
-        unsigned ii=0, jj=0;
-        for(; ii<grad_cell_density.size(); ++ii)
+        std::vector<double> old_old_cell_density_vlaue(4, 0);
+        unsigned ii=0;
+        for(; ii<grad_cell_density.size(); ++ii) {
             grad_cell_density[ii] = scratch.solution_grads_c[ii][q_point];
-        for(; jj<cell_density_value.size(); ++jj){
-            cell_density_value[jj]      = scratch.solution_value_c[jj][q_point];
-            old_cell_density_vlaue[jj]  = scratch.old_solution_value_c[jj][q_point];
+            cell_density_value[ii] = scratch.solution_value_c[ii][q_point];
+            old_cell_density_vlaue[ii] = scratch.old_solution_value_c[ii][q_point];
+            old_old_cell_density_vlaue[ii] = scratch.old_old_solution_value_c[ii][q_point];
         }
         
         
         
       lqph[q_point].update_values(scratch.solution_grads_u[q_point],grad_cell_density, cell_density_value,
                       scratch.old_solution_grads_u[q_point], scratch.old_old_solution_grads_u[q_point],
-                        old_cell_density_vlaue,scratch.old_old_solution_value_c_n[q_point],
+                        old_cell_density_vlaue, old_old_cell_density_vlaue,
                        time.current(),scratch.update_growth, stretch_max);
      }
   }
@@ -1295,7 +1271,7 @@ template <int dim>
 	}
 	std::cout << std::endl;
 
-	std::cout << "             SOLVER STEP                 "
+	std::cout << "             SOLVER STEP              "
 				<< " |   LIN_IT   LIN_RES   RES_NORM  "
                                 << " RES_U     RES_RG    RES_IP    RES_OR    RES_N     NU_NORM     NU_U     NU_N     "
 				<< std::endl;
@@ -1317,13 +1293,14 @@ template <int dim>
     for (unsigned int i = 0; i < l_width; ++i)
       std::cout << "_";
     std::cout << std::endl;
-
-    std::cout << "Relative errors:" << std::endl
-              << "Displacment: \t\t" << error_residual_norm.u << std::endl
-              << "RG_Cell_Density: \t\t" << error_residual_norm.c_rg << std::endl
-              << "IP_Cell_Density: \t\t" << error_residual_norm.c_ip << std::endl
-              << "OR_Cell_Density: \t\t" << error_residual_norm.c_or << std::endl
-             << "N_Cell_Density: \t\t" << error_residual_norm.c_n << std::endl;
+   
+    std::cout << "\n Relative errors:" << std::endl
+              << "\t Displacment:     \t\t" << error_residual_norm.u << std::endl
+              << "\t RG_Cell_Density: \t\t" << error_residual_norm.c_rg << std::endl
+              << "\t IP_Cell_Density: \t\t" << error_residual_norm.c_ip << std::endl
+              << "\t OR_Cell_Density: \t\t" << error_residual_norm.c_or << std::endl
+              << "\t N_Cell_Density:  \t\t" << error_residual_norm.c_n << std::endl;
+    std::cout << std::endl;
   }
 
 
@@ -1422,7 +1399,7 @@ template <int dim>
 
   template <int dim>
   double Solid<dim>::compute_viscosity( PointHistory<dim> *lqph ,
-	  const double                       cell_diameter) const
+	  const double cell_diameter, const int cell_type) const
 	{
 	  const double beta  = parameters.Betta * dim;
 
@@ -1430,8 +1407,8 @@ template <int dim>
         
 	  for (unsigned int q = 0; q < n_q_points; ++q)
 	    {
-            const Tensor<1, dim>        old_velocity_values = lqph[q].get_old_velocity_values();
-            const Tensor<1 ,dim>    old_old_velocity_values = lqph[q].get_old_old_velocity_values();
+            const Tensor<1, dim>        old_velocity_values = lqph[q].get_old_velocity_values(cell_type);
+            const Tensor<1 ,dim>    old_old_velocity_values = lqph[q].get_old_old_velocity_values(cell_type);
            
 	      const Tensor<1, dim> u = 
           (old_velocity_values + old_old_velocity_values) / 2;
@@ -1516,24 +1493,25 @@ template <int dim>
                 
               else if (k_group == c_rg_dof)
                 {
+                    scratch.grad_Nx_c[RG][q_point][k] = scratch.fe_values_ref[c_rg_fe].gradient(k, q_point)* F_inv;
                     scratch.Nx_c[RG][q_point][k] = scratch.fe_values_ref[c_rg_fe].value(k, q_point);
                  }
                 
               else if (k_group == c_ip_dof)
                 {
-                    scratch.grad_Nx_c[GIP][q_point][k] = scratch.fe_values_ref[c_ip_fe].gradient(k, q_point)* F_inv;
+                    scratch.grad_Nx_c[IP][q_point][k] = scratch.fe_values_ref[c_ip_fe].gradient(k, q_point)* F_inv;
                     scratch.Nx_c[IP][q_point][k] = scratch.fe_values_ref[c_ip_fe].value(k, q_point);
                  }
                 
               else if (k_group == c_or_dof)
                 {
-                    scratch.grad_Nx_c[GOR][q_point][k] = scratch.fe_values_ref[c_or_fe].gradient(k, q_point)* F_inv;
+                    scratch.grad_Nx_c[OR][q_point][k] = scratch.fe_values_ref[c_or_fe].gradient(k, q_point)* F_inv;
                     scratch.Nx_c[OR][q_point][k] = scratch.fe_values_ref[c_or_fe].value(k, q_point);
                  }
                 
               else if (k_group == c_nu_dof)
                 {
-                    scratch.grad_Nx_c[GNU][q_point][k] = scratch.fe_values_ref[c_n_fe].gradient(k, q_point)* F_inv;
+                    scratch.grad_Nx_c[NU][q_point][k] = scratch.fe_values_ref[c_n_fe].gradient(k, q_point)* F_inv;
                     scratch.Nx_c[NU][q_point][k] = scratch.fe_values_ref[c_n_fe].value(k, q_point);
                  }
       
@@ -1542,38 +1520,55 @@ template <int dim>
          }
       }
 
- 
-      const double nue =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter());
+      const double nue_rg =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), RG);
+      const double nue_ip =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), IP);
+      const double nue_or =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), OR);
+      const double nue_nu =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), NU);
 
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
                   const SymmetricTensor<2,dim>     tau = lqph[q_point].get_tau();
                   const SymmetricTensor<4, dim>     Jc = lqph[q_point].get_elastic_tensor();
-                  const Tensor<3, dim>    Jdq_ip_dF_Ft = lqph[q_point].get_Jdq_ip_dF_Ft();
-                  const Tensor<3, dim>    Jdq_or_dF_Ft = lqph[q_point].get_Jdq_or_dF_Ft();
-                  const Tensor<3, dim>    Jdq_nu_dF_Ft = lqph[q_point].get_Jdq_nu_dF_Ft();
+                  const Tensor<3, dim>    Jdq_rg_dF_Ft = lqph[q_point].get_Jdq_dF_Ft(RG);
+                  const Tensor<3, dim>    Jdq_ip_dF_Ft = lqph[q_point].get_Jdq_dF_Ft(IP);
+                  const Tensor<3, dim>    Jdq_or_dF_Ft = lqph[q_point].get_Jdq_dF_Ft(OR);
+                  const Tensor<3, dim>    Jdq_nu_dF_Ft = lqph[q_point].get_Jdq_dF_Ft(NU);
                   const Tensor<2, dim>         dtau_dc = lqph[q_point].get_dtau_dc();
-                  const Tensor<1, dim> Jq_nu_migration = lqph[q_point].get_Jq_nu_migration();
-                  const Tensor<1, dim>           Jq_ip = lqph[q_point].get_Jq_ip();
-                  const Tensor<1, dim>           Jq_or = lqph[q_point].get_Jq_or();
-                  const Tensor<1, dim>       Jdq_ip_dc = lqph[q_point].get_Jdq_ip_dc();
-                  const Tensor<1, dim>       Jdq_or_dc = lqph[q_point].get_Jdq_or_dc();
-                  const Tensor<1, dim>       Jdq_nu_dc = lqph[q_point].get_Jdq_nu_dc();
+                  const Tensor<1, dim> Jq_nu_migration = lqph[q_point].get_Jq_migration(NU);
+                  const Tensor<1, dim> Jq_rg_migration = lqph[q_point].get_Jq_migration(RG);
+                  const Tensor<1, dim> Jq_ip_migration = lqph[q_point].get_Jq_migration(IP);
+                  const Tensor<1, dim> Jq_or_migration = lqph[q_point].get_Jq_migration(OR);
+                  const Tensor<1, dim>       Jdq_rg_dc = lqph[q_point].get_Jdq_dc(RG);
+                  const Tensor<1, dim>       Jdq_ip_dc = lqph[q_point].get_Jdq_dc(IP);
+                  const Tensor<1, dim>       Jdq_or_dc = lqph[q_point].get_Jdq_dc(OR);
+                  const Tensor<1, dim>       Jdq_nu_dc = lqph[q_point].get_Jdq_dc(NU);
                   const double                       J = lqph[q_point].get_J();
 		          const double                     J_n = lqph[q_point].get_J_old();
-                  const double                    c_rg = lqph[q_point].get_c_rg();
-                  const double                    c_ip = lqph[q_point].get_c_ip();
-                  const double                    c_or = lqph[q_point].get_c_or();
-                  const double                    c_nu = lqph[q_point].get_c_nu();
-		          const double                  c_rg_n = lqph[q_point].get_c_rg_old();
-                  const double                  c_ip_n = lqph[q_point].get_c_ip_old();
-                  const double                  c_or_n = lqph[q_point].get_c_or_old();
-                  const double                  c_nu_n = lqph[q_point].get_c_nu_old();
+                  const double                    c_rg = lqph[q_point].get_c(RG);
+                  const double                    c_ip = lqph[q_point].get_c(IP);
+                  const double                    c_or = lqph[q_point].get_c(OR);
+                  const double                    c_nu = lqph[q_point].get_c(NU);
+		          const double                  c_rg_n = lqph[q_point].get_c_old(RG);
+                  const double                  c_ip_n = lqph[q_point].get_c_old(IP);
+                  const double                  c_or_n = lqph[q_point].get_c_old(OR);
+                  const double                  c_nu_n = lqph[q_point].get_c_old(NU);
 		          const double               time_step = time.get_delta_t();
           
-		          const Tensor<2, dim>               I = Physics::Elasticity::StandardTensors< dim >::I;
-                  const Tensor<2, dim>  Jdq_nu_dgrad_c = J * (lqph[q_point].get_dcc_r() + nue) * I;
-                  const Tensor<1, dim> Jq_nu_diffusion = (Jdq_nu_dgrad_c * lqph[q_point].get_grad_c_nu_spatial());
+                  const Tensor<2, dim>               I = Physics::Elasticity::StandardTensors< dim >::I;
+                  const Tensor<2, dim>  Jdq_rg_dgrad_c = J * (lqph[q_point].get_dcc_r(RG) + nue_rg) * I;
+                  const Tensor<1, dim> Jq_rg_diffusion = (Jdq_rg_dgrad_c * lqph[q_point].get_grad_c_spatial(RG));
+                  const Tensor<1, dim>           Jq_rg = Jq_rg_migration + Jq_rg_diffusion;
+
+                  const Tensor<2, dim>  Jdq_ip_dgrad_c = J * (lqph[q_point].get_dcc_r(IP) + nue_ip) * I;
+                  const Tensor<1, dim> Jq_ip_diffusion = (Jdq_ip_dgrad_c * lqph[q_point].get_grad_c_spatial(IP));
+                  const Tensor<1, dim>           Jq_ip = Jq_ip_migration + Jq_ip_diffusion;
+
+                  const Tensor<2, dim>  Jdq_or_dgrad_c = J * (lqph[q_point].get_dcc_r(OR) + nue_or) * I;
+                  const Tensor<1, dim> Jq_or_diffusion = (Jdq_or_dgrad_c * lqph[q_point].get_grad_c_spatial(OR));
+                  const Tensor<1, dim>           Jq_or = Jq_or_migration + Jq_or_diffusion;
+
+                  const Tensor<2, dim>  Jdq_nu_dgrad_c = J * (lqph[q_point].get_dcc_r(NU) + nue_nu) * I;
+                  const Tensor<1, dim> Jq_nu_diffusion = (Jdq_nu_dgrad_c * lqph[q_point].get_grad_c_spatial(NU));
                   const Tensor<1, dim>           Jq_nu = Jq_nu_migration + Jq_nu_diffusion;
 
  
@@ -1581,9 +1576,10 @@ template <int dim>
                 const double JxW = scratch.fe_values_ref.JxW(q_point);        
                 const std::vector<SymmetricTensor<2, dim> > &sym_grad_Nx = scratch.symm_grad_Nx_u[q_point];
                 const std::vector<Tensor<2, dim> >    &grd_Nx = scratch.grad_Nx_u[q_point];
-                const std::vector<Tensor<1, dim> > &grd_Nx_ip = scratch.grad_Nx_c[GIP][q_point];
-                const std::vector<Tensor<1, dim> > &grd_Nx_or = scratch.grad_Nx_c[GOR][q_point];
-                const std::vector<Tensor<1, dim> > &grd_Nx_nu = scratch.grad_Nx_c[GNU][q_point];
+                const std::vector<Tensor<1, dim> > &grd_Nx_rg = scratch.grad_Nx_c[RG][q_point];
+                const std::vector<Tensor<1, dim> > &grd_Nx_ip = scratch.grad_Nx_c[IP][q_point];
+                const std::vector<Tensor<1, dim> > &grd_Nx_or = scratch.grad_Nx_c[OR][q_point];
+                const std::vector<Tensor<1, dim> > &grd_Nx_nu = scratch.grad_Nx_c[NU][q_point];
                 const std::vector<double>              &Nx_rg = scratch.Nx_c[RG][q_point];
                 const std::vector<double>              &Nx_ip = scratch.Nx_c[IP][q_point];
                 const std::vector<double>              &Nx_or = scratch.Nx_c[OR][q_point];
@@ -1617,40 +1613,47 @@ template <int dim>
                 else if((i_group == u_dof) && (j_group == c_nu_dof))
                     data.cell_matrix(i,j) += scalar_product(grd_Nx[i], dtau_dc) * Nx_nu[j]  * JxW;
 
-                else if((i_group == c_rg_dof) && (j_group == u_dof))
-                    data.cell_matrix(i,j) += Nx_rg[i] * (J/ time_step) * (2*c_rg-c_rg_n)  * scalar_product(I, grd_Nx[j]) *JxW; //(J/ (2*time_step)) * (6*c-4*c_n+c_n_1)
-                
+                else if((i_group == c_rg_dof) && (j_group == u_dof)){
+                    data.cell_matrix(i,j) += Nx_rg[i] * (J/ time_step) * (2*c_rg -c_rg_n)  * scalar_product(I, grd_Nx[j]) *JxW; //(J/ (2*time_step)) * (6*c-4*c_n+c_n_1)
+                    data.cell_matrix(i,j) -= grd_Nx[j] * Jq_rg * grd_Nx_rg[i] * JxW;
+                    data.cell_matrix(i,j) += grd_Nx_ip[i] * Jq_rg * scalar_product(I, grd_Nx[j])*JxW;
+                    data.cell_matrix(i,j) += scalar_product((grd_Nx_rg[i] * Jdq_rg_dF_Ft),grd_Nx[j]) * JxW;}
+                  
                 else if((i_group == c_ip_dof) && (j_group == u_dof)){
                     data.cell_matrix(i,j) += Nx_ip[i] * (J/ time_step) * (2*c_ip-c_ip_n)  * scalar_product(I, grd_Nx[j]) *JxW; //(J/ (2*time_step)) * (6*c-4*c_n+c_n_1)
                     data.cell_matrix(i,j) -= grd_Nx[j] * Jq_ip * grd_Nx_ip[i] * JxW;
                     data.cell_matrix(i,j) += grd_Nx_ip[i] * Jq_ip * scalar_product(I, grd_Nx[j])*JxW;
-                    data.cell_matrix(i,j) += scalar_product((grd_Nx_ip[i]*Jdq_ip_dF_Ft),grd_Nx[j]) * JxW;}
+                    data.cell_matrix(i,j) += scalar_product((grd_Nx_ip[i] * Jdq_ip_dF_Ft),grd_Nx[j]) * JxW;}
                   
                 else if((i_group == c_or_dof) && (j_group == u_dof)){
                     data.cell_matrix(i,j) += Nx_or[i] * (J/ time_step) * (2*c_or-c_or_n)  * scalar_product(I, grd_Nx[j]) *JxW; //(J/ (2*time_step)) * (6*c-4*c_n+c_n_1)
                     data.cell_matrix(i,j) -= grd_Nx[j] * Jq_or * grd_Nx_or[i] * JxW;
                     data.cell_matrix(i,j) += grd_Nx_or[i] * Jq_or * scalar_product(I, grd_Nx[j])*JxW;
-                    data.cell_matrix(i,j) += scalar_product((grd_Nx_or[i]*Jdq_or_dF_Ft),grd_Nx[j]) * JxW;}
+                    data.cell_matrix(i,j) += scalar_product((grd_Nx_or[i] * Jdq_or_dF_Ft),grd_Nx[j]) * JxW;}
                   
                 else if((i_group == c_nu_dof) && (j_group == u_dof)){
                     data.cell_matrix(i,j) += Nx_nu[i] * (J/ time_step) * (2*c_nu-c_nu_n)  * scalar_product(I, grd_Nx[j]) *JxW; //(J/ (2*time_step)) * (6*c-4*c_n+c_n_1)
                     data.cell_matrix(i,j) -= grd_Nx[j] * Jq_nu * grd_Nx_nu[i] * JxW;
                     data.cell_matrix(i,j) += grd_Nx_nu[i] * Jq_nu * scalar_product(I, grd_Nx[j])*JxW;
-                    data.cell_matrix(i,j) += scalar_product((grd_Nx_nu[i]*Jdq_nu_dF_Ft),grd_Nx[j]) * JxW;}
+                    data.cell_matrix(i,j) += scalar_product((grd_Nx_nu[i] * Jdq_nu_dF_Ft),grd_Nx[j]) * JxW;}
 
-                else if((i_group == j_group) && (i_group == c_rg_dof))
-                    data.cell_matrix(i,j) += Nx_rg[i] * ((2*J-J_n)/time_step) * Nx_rg[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
-                
+                else if((i_group == j_group) && (i_group == c_rg_dof)){
+                       data.cell_matrix(i,j) += Nx_rg[i] * ((2*J - J_n)/time_step) * Nx_rg[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
+                       data.cell_matrix(i,j) += grd_Nx_rg[i] * Jdq_rg_dc * Nx_rg[j] * JxW;
+                       data.cell_matrix(i,j) += grd_Nx_rg[i] * Jdq_rg_dgrad_c * grd_Nx_rg[j] * JxW;}
+                  
                 else if((i_group == j_group) && (i_group == c_ip_dof)) {
-                    data.cell_matrix(i,j) += Nx_ip[i] * ((2*J-J_n)/time_step) * Nx_ip[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
-                    data.cell_matrix(i,j) += grd_Nx_ip[i] * Jdq_ip_dc * Nx_ip[j] * JxW;}
+                           data.cell_matrix(i,j) += Nx_ip[i] * ((2*J - J_n)/time_step) * Nx_ip[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
+                           data.cell_matrix(i,j) += grd_Nx_ip[i] * Jdq_ip_dc * Nx_ip[j] * JxW;
+                           data.cell_matrix(i,j) += grd_Nx_ip[i] * Jdq_ip_dgrad_c * grd_Nx_ip[j] * JxW;}
 
                 else if((i_group == j_group) && (i_group == c_or_dof)) {
-                      data.cell_matrix(i,j) += Nx_or[i] * ((2*J-J_n)/time_step) * Nx_or[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
-                      data.cell_matrix(i,j) += grd_Nx_or[i] * Jdq_or_dc * Nx_or[j] * JxW;}
+                           data.cell_matrix(i,j) += Nx_or[i] * ((2*J - J_n)/time_step) * Nx_or[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
+                           data.cell_matrix(i,j) += grd_Nx_or[i] * Jdq_or_dc * Nx_or[j] * JxW;
+                           data.cell_matrix(i,j) += grd_Nx_or[i] * Jdq_or_dgrad_c * grd_Nx_or[j] * JxW;}
 
                 else if((i_group == j_group) && (i_group == c_nu_dof)) {
-                       data.cell_matrix(i,j) += Nx_nu[i] * ((2*J-J_n)/time_step) * Nx_nu[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
+                       data.cell_matrix(i,j) += Nx_nu[i] * ((2*J - J_n)/time_step) * Nx_nu[j] * JxW; //((6*J-4*J_n+J_n_1)/(2*time_step))
                        data.cell_matrix(i,j) += grd_Nx_nu[i] * Jdq_nu_dc * Nx_nu[j] * JxW;
                        data.cell_matrix(i,j) += grd_Nx_nu[i] * Jdq_nu_dgrad_c * grd_Nx_nu[j] * JxW;}
                 else
@@ -1730,24 +1733,25 @@ template <int dim>
                  
                else if (k_group == c_rg_dof)
                  {
+                     scratch.grad_Nx_c[RG][q_point][k] = scratch.fe_values_ref[c_rg_fe].gradient(k, q_point)* F_inv;
                      scratch.Nx_c[RG][q_point][k] = scratch.fe_values_ref[c_rg_fe].value(k, q_point);
                   }
                  
                else if (k_group == c_ip_dof)
                  {
-                     scratch.grad_Nx_c[GIP][q_point][k] = scratch.fe_values_ref[c_ip_fe].gradient(k, q_point)* F_inv;
+                     scratch.grad_Nx_c[IP][q_point][k] = scratch.fe_values_ref[c_ip_fe].gradient(k, q_point)* F_inv;
                      scratch.Nx_c[IP][q_point][k] = scratch.fe_values_ref[c_ip_fe].value(k, q_point);
                   }
                  
                else if (k_group == c_or_dof)
                  {
-                     scratch.grad_Nx_c[GOR][q_point][k] = scratch.fe_values_ref[c_or_fe].gradient(k, q_point)* F_inv;
+                     scratch.grad_Nx_c[OR][q_point][k] = scratch.fe_values_ref[c_or_fe].gradient(k, q_point)* F_inv;
                      scratch.Nx_c[OR][q_point][k] = scratch.fe_values_ref[c_or_fe].value(k, q_point);
                   }
                  
                else if (k_group == c_nu_dof)
                  {
-                     scratch.grad_Nx_c[GNU][q_point][k] = scratch.fe_values_ref[c_n_fe].gradient(k, q_point)* F_inv;
+                     scratch.grad_Nx_c[NU][q_point][k] = scratch.fe_values_ref[c_n_fe].gradient(k, q_point)* F_inv;
                      scratch.Nx_c[NU][q_point][k] = scratch.fe_values_ref[c_n_fe].value(k, q_point);
                   }
        
@@ -1756,42 +1760,59 @@ template <int dim>
           }
       }
  
-      const double nue = compute_viscosity (reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()),  cell->diameter());
+      const double nue_rg =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), RG);
+      const double nue_ip =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), IP);
+      const double nue_or =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), OR);
+      const double nue_nu =  compute_viscosity(reinterpret_cast<PointHistory<dim>*>(cell->user_pointer()), cell->diameter(), NU);
       
     for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       {
           
         const SymmetricTensor<2,dim>     tau = lqph[q_point].get_tau();
-        const Tensor<1, dim> Jq_nu_migration = lqph[q_point].get_Jq_nu_migration();
-        const Tensor<1, dim>           Jq_ip = lqph[q_point].get_Jq_ip();
-        const Tensor<1, dim>           Jq_or = lqph[q_point].get_Jq_or();
-        const double                  F_c_rg = lqph[q_point].get_F_c_rg();
-        const double                  F_c_ip = lqph[q_point].get_F_c_ip();
-        const double                  F_c_or = lqph[q_point].get_F_c_or();
-        const double                  F_c_nu = lqph[q_point].get_F_c_nu();
-        const double                    J = lqph[q_point].get_J();
-	    const double                  J_n = lqph[q_point].get_J_old();
-        const double                    c_rg = lqph[q_point].get_c_rg();
-        const double                    c_ip = lqph[q_point].get_c_ip();
-        const double                    c_or = lqph[q_point].get_c_or();
-        const double                    c_nu = lqph[q_point].get_c_nu();
-        const double                  c_rg_n = lqph[q_point].get_c_rg_old();
-        const double                  c_ip_n = lqph[q_point].get_c_ip_old();
-        const double                  c_or_n = lqph[q_point].get_c_or_old();
-        const double                  c_nu_n = lqph[q_point].get_c_nu_old();
+        const Tensor<1, dim> Jq_nu_migration = lqph[q_point].get_Jq_migration(NU);
+        const Tensor<1, dim> Jq_rg_migration = lqph[q_point].get_Jq_migration(RG);
+        const Tensor<1, dim> Jq_ip_migration = lqph[q_point].get_Jq_migration(IP);
+        const Tensor<1, dim> Jq_or_migration = lqph[q_point].get_Jq_migration(OR);
+        const double                  F_c_rg = lqph[q_point].get_F_c(RG);
+        const double                  F_c_ip = lqph[q_point].get_F_c(IP);
+        const double                  F_c_or = lqph[q_point].get_F_c(OR);
+        const double                  F_c_nu = lqph[q_point].get_F_c(NU);
+        const double                       J = lqph[q_point].get_J();
+	const double                     J_n = lqph[q_point].get_J_old();
+        const double                    c_rg = lqph[q_point].get_c(RG);
+        const double                    c_ip = lqph[q_point].get_c(IP);
+        const double                    c_or = lqph[q_point].get_c(OR);
+        const double                    c_nu = lqph[q_point].get_c(NU);
+        const double                  c_rg_n = lqph[q_point].get_c_old(RG);
+        const double                  c_ip_n = lqph[q_point].get_c_old(IP);
+        const double                  c_or_n = lqph[q_point].get_c_old(OR);
+        const double                  c_nu_n = lqph[q_point].get_c_old(NU);
         const double               time_step = time.get_delta_t();
      
-        const Tensor<2, dim>               I = Physics::Elasticity::StandardTensors< dim >::I;
-        const Tensor<2, dim>  Jdq_nu_dgrad_c = J * (lqph[q_point].get_dcc_r() + nue) * I;
-        const Tensor<1, dim> Jq_nu_diffusion = (Jdq_nu_dgrad_c * lqph[q_point].get_grad_c_nu_spatial());
-        const Tensor<1, dim>           Jq_nu = Jq_nu_migration + Jq_nu_diffusion;
+		  const Tensor<2, dim>               I = Physics::Elasticity::StandardTensors< dim >::I;
+                  const Tensor<2, dim>  Jdq_rg_dgrad_c = J * (lqph[q_point].get_dcc_r(RG) + nue_rg) * I;
+                  const Tensor<1, dim> Jq_rg_diffusion = (Jdq_rg_dgrad_c * lqph[q_point].get_grad_c_spatial(RG));
+                  const Tensor<1, dim>           Jq_rg = Jq_rg_migration + Jq_rg_diffusion;
+
+                  const Tensor<2, dim>  Jdq_ip_dgrad_c = J * (lqph[q_point].get_dcc_r(IP) + nue_ip) * I;
+                  const Tensor<1, dim> Jq_ip_diffusion = (Jdq_ip_dgrad_c * lqph[q_point].get_grad_c_spatial(IP));
+                  const Tensor<1, dim>           Jq_ip = Jq_ip_migration + Jq_ip_diffusion;
+
+                  const Tensor<2, dim>  Jdq_or_dgrad_c = J * (lqph[q_point].get_dcc_r(OR) + nue_or) * I;
+                  const Tensor<1, dim> Jq_or_diffusion = (Jdq_or_dgrad_c * lqph[q_point].get_grad_c_spatial(OR));
+                  const Tensor<1, dim>           Jq_or = Jq_or_migration + Jq_or_diffusion;
+
+                  const Tensor<2, dim>  Jdq_nu_dgrad_c = J * (lqph[q_point].get_dcc_r(NU) + nue_nu) * I;
+                  const Tensor<1, dim> Jq_nu_diffusion = (Jdq_nu_dgrad_c * lqph[q_point].get_grad_c_spatial(NU));
+                  const Tensor<1, dim>           Jq_nu = Jq_nu_migration + Jq_nu_diffusion;
           
           const double                  JxW = scratch.fe_values_ref.JxW(q_point);
           const std::vector<SymmetricTensor<2, dim> > &sym_grad_Nx = scratch.symm_grad_Nx_u[q_point];
           const std::vector<Tensor<2, dim> >    &grd_Nx = scratch.grad_Nx_u[q_point];
-          const std::vector<Tensor<1, dim> > &grd_Nx_ip = scratch.grad_Nx_c[GIP][q_point];
-          const std::vector<Tensor<1, dim> > &grd_Nx_or = scratch.grad_Nx_c[GOR][q_point];
-          const std::vector<Tensor<1, dim> > &grd_Nx_nu = scratch.grad_Nx_c[GNU][q_point];
+          const std::vector<Tensor<1, dim> > &grd_Nx_rg = scratch.grad_Nx_c[RG][q_point];
+          const std::vector<Tensor<1, dim> > &grd_Nx_ip = scratch.grad_Nx_c[IP][q_point];
+          const std::vector<Tensor<1, dim> > &grd_Nx_or = scratch.grad_Nx_c[OR][q_point];
+          const std::vector<Tensor<1, dim> > &grd_Nx_nu = scratch.grad_Nx_c[NU][q_point];
           const std::vector<double>              &Nx_rg = scratch.Nx_c[RG][q_point];
           const std::vector<double>              &Nx_ip = scratch.Nx_c[IP][q_point];
           const std::vector<double>              &Nx_or = scratch.Nx_c[OR][q_point];
@@ -1805,25 +1826,26 @@ template <int dim>
 		          data.cell_rhs(i) -= (sym_grad_Nx[i] * tau) * JxW;
               
              else if(i_group == c_rg_dof){
-                  data.cell_rhs(i) -= Nx_rg[i] * ((J-J_n)/time_step) * c_rg * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
-                  data.cell_rhs(i) -= J * Nx_rg[i] * ((c_rg-c_rg_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
-                  data.cell_rhs(i) += Nx_rg[i] * F_c_rg * JxW;}
+                 data.cell_rhs(i) -= Nx_rg[i] * ((J - J_n)/time_step) * c_rg * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
+                 data.cell_rhs(i) -= J * Nx_rg[i] * ((c_rg - c_rg_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
+                 data.cell_rhs(i) -= grd_Nx_rg[i] * Jq_rg * JxW;
+                 data.cell_rhs(i) += Nx_rg[i] * F_c_rg * JxW;}
               
              else if(i_group == c_ip_dof){
-                  data.cell_rhs(i) -= Nx_ip[i] * ((J-J_n)/time_step) * c_ip * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
-                  data.cell_rhs(i) -= J * Nx_ip[i] * ((c_ip-c_ip_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= Nx_ip[i] * ((J - J_n)/time_step) * c_ip * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= J * Nx_ip[i] * ((c_ip - c_ip_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
                   data.cell_rhs(i) -= grd_Nx_ip[i] * Jq_ip * JxW;
                   data.cell_rhs(i) += Nx_ip[i] * F_c_ip * JxW;}
               
              else if(i_group == c_or_dof){
-                  data.cell_rhs(i) -= Nx_or[i] * ((J-J_n)/time_step) * c_or * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
-                  data.cell_rhs(i) -= J * Nx_or[i] * ((c_or-c_or_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= Nx_or[i] * ((J - J_n)/time_step) * c_or * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= J * Nx_or[i] * ((c_or - c_or_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
                   data.cell_rhs(i) -= grd_Nx_or[i] * Jq_or * JxW;
                   data.cell_rhs(i) += Nx_or[i] * F_c_or * JxW;}
               
              else if(i_group == c_nu_dof){
-                  data.cell_rhs(i) -= Nx_nu[i] * ((J-J_n)/time_step) * c_nu * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
-                  data.cell_rhs(i) -= J * Nx_nu[i] * ((c_nu-c_nu_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= Nx_nu[i] * ((J - J_n)/time_step) * c_nu * JxW;  //((3*J-4*J_n+J_n_1)/(2*time_step))
+                  data.cell_rhs(i) -= J * Nx_nu[i] * ((c_nu - c_nu_n)/time_step) * JxW; //((3*c-4*c_n+c_n_1)/(2*time_step))
                   data.cell_rhs(i) -= grd_Nx_nu[i] * Jq_nu * JxW;
                   data.cell_rhs(i) += Nx_nu[i] * F_c_nu * JxW;}
       }
@@ -2016,17 +2038,22 @@ void Solid<dim>::assemble_sc_one_cell(const typename DoFHandler<dim>::active_cel
         data.k_or_or_inv.invert(data.k_or_or);
         data.k_nu_nu_inv.invert(data.k_nu_nu);
 
+
         // k_B = k_cc^-1 * k_cu
         data.k_rg_rg_inv.mmult(data.k_B_rg, data.k_rg_u);
         data.k_ip_ip_inv.mmult(data.k_B_ip, data.k_ip_u);
         data.k_or_or_inv.mmult(data.k_B_or, data.k_or_u);
         data.k_nu_nu_inv.mmult(data.k_B_nu, data.k_nu_u);
     
+
+
         // k_bar = k_uc * k_B
         data.k_u_rg.mmult(data.k_bar_rg, data.k_B_rg);
         data.k_u_ip.mmult(data.k_bar_ip, data.k_B_ip);
         data.k_u_or.mmult(data.k_bar_or, data.k_B_or);
         data.k_u_nu.mmult(data.k_bar_nu, data.k_B_nu);
+
+
     
         // k_bar = - k_bar
         data.k_bar_rg *= -1;
@@ -2035,18 +2062,20 @@ void Solid<dim>::assemble_sc_one_cell(const typename DoFHandler<dim>::active_cel
         data.k_bar_nu *= -1;
 
 
+
         // k_cc^-1 = k_cc^-1 - k_cc
         data.k_rg_rg_inv.add(-1, data.k_rg_rg);
         data.k_ip_ip_inv.add(-1, data.k_ip_ip);
         data.k_or_or_inv.add(-1, data.k_or_or);
         data.k_nu_nu_inv.add(-1, data.k_nu_nu);
 
+
+
         // k_B = k_B - k_cu
         data.k_B_rg.add(-1, data.k_rg_u);
         data.k_B_ip.add(-1, data.k_ip_u);
         data.k_B_or.add(-1, data.k_or_u);
         data.k_B_nu.add(-1, data.k_nu_u);
-
 
 
         data.k_bar_rg.scatter_matrix_to (element_indices_u, element_indices_u, data.cell_matrix);
@@ -2672,7 +2701,7 @@ void Solid<dim>::sptial_density_grads_projection(BlockVector<double> &sptial_den
         
         for(unsigned int k=0; k<n_q_points;++k)
         {
-            const Tensor<1, dim>         grad_c_s = lqph[k].get_grad_c_nu_spatial();
+            const Tensor<1, dim>         grad_c_s = lqph[k].get_grad_c_spatial(NU);
             
                
             const double JxW = fe_values.JxW(k);
@@ -3321,7 +3350,7 @@ void Solid<dim>::diffusion_projection(BlockVector<double> &diffusion_values)
         for(unsigned int k=0; k<n_q_points;++k)
         {
             
-             const double d = lqph[k].get_dcc_r();
+             const double d = lqph[k].get_dcc_r(NU);
                 
             const double JxW = fe_values.JxW(k);
             
