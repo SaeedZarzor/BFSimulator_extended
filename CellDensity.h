@@ -72,10 +72,10 @@ class CellDensity
          {
             const int a= 10;
             int ph = (t < phase_weeks[0] ? 0 : (t < phase_weeks[1] ? 1 : (t < phase_weeks[2] ? 2 : (t < phase_weeks[3] ? 3 : 4))));
-            sources[RG] = phase_ratio[0][ph]  * Old_values[RG];
-            sources[IP] = phase_ratio[1][ph]  * Old_values[RG] + phase_ratio[2][ph]  * Old_values[OR] - (phase_ratio[3][ph]/a) * Old_values[IP];
-            sources[OR] = phase_ratio[4][ph]  * Old_values[RG];
-            sources[NU] = (phase_ratio[5][ph]/a)  * Old_values[IP];
+            sources[RG] = (phase_ratio[0][ph]/2)  * Old_values[RG];
+            sources[IP] = (phase_ratio[1][ph]/2)  * Old_values[RG] + (phase_ratio[2][ph]/2)  * Old_values[OR] - (phase_ratio[3][ph]/(2*a)) * Old_values[IP];
+            sources[OR] = (phase_ratio[4][ph]/2)  * Old_values[RG];
+            sources[NU] = (phase_ratio[5][ph]/(2*a))  * Old_values[IP];
         
       
                }
