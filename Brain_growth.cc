@@ -153,6 +153,7 @@ namespace Brain_growth
          else if (dim ==3)
              r = p.distance(Point<dim>(0.0,0.0, 0.0));
          
+
 	     double H = (std::exp((r-dvision_raduis)*20))/(1.+std::exp((r-dvision_raduis)*20));
 
              value(dim) = dvision_value*(1-H);
