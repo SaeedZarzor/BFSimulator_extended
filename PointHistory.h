@@ -45,6 +45,7 @@ public:
              
           p = position;
           d_t = delta_t;
+          a = parameter.source_deceleration_factor;
            
 //           std::vector<std::vector<int> > phase_ratio{{1,0,0,0,0},  // RG/RG_n
 //                                                         {0,1,0,0,0},  // IP/Rg_n
@@ -55,11 +56,11 @@ public:
 
 	      
 
-              material = new NeoHookeanMaterial<dim>(parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, zones_raduis[3]);
+              material = new NeoHookeanMaterial<dim>(parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, parameter.zones_raduis[3]);
 
-              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent, zones_raduis[3]);
+              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent, parameter.zones_raduis[3]);
 
-              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.migration_speed, parameter.diffusivity, parameter.zones_raduis,parameter.phase_weeks, parameter.phase_ratio);
+              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.migration_speed, parameter.diffusivity, parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
 
            
        
@@ -103,7 +104,7 @@ public:
                       F_e = F * inv_F_g;
          
             density-> update_flux(F, Grad_c, c ,p, t);
-            density-> compute_denisty_source(t, d_t, c_n, sources);
+            density-> compute_denisty_source(t, d_t, a ,c_n, sources);
             material-> update_material_data(F_e, p, c_n[NU]);
 
 
@@ -257,6 +258,7 @@ public:
     double J;
     double J_n;
     double J_n_1;
+    int a;
 
     
     enum

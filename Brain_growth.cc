@@ -72,6 +72,7 @@
 #include <iostream>
 #include <math.h>
 #include <fstream>
+#include <cmath>
 
 #include "PointHistory.h"
 #include "Parameter.h"
@@ -146,7 +147,12 @@ namespace Brain_growth
 	     Assert(value.size() == dim + 4, ExcDimensionMismatch(value.size(), dim + 4));
 
 		
-	     double r = p.distance(Point<dim>(0.0,0.0));
+         double r =0;
+         if (dim ==2)
+             r = p.distance(Point<dim>(0.0,0.0));
+         else if (dim ==3)
+             r = p.distance(Point<dim>(0.0,0.0, 0.0));
+         
 	     double H = (std::exp((r-dvision_raduis)*20))/(1.+std::exp((r-dvision_raduis)*20));
 
              value(dim) = dvision_value*(1-H);
@@ -159,6 +165,38 @@ namespace Brain_growth
 	 double dvision_raduis;
 	 double dvision_value;
    };
+
+template <int dim>
+class Rotate3d
+  {
+     public:
+       Rotate3d (const double angle,
+                 const unsigned int axis)
+         :
+         angle(angle),
+         axis(axis)
+       {}
+ 
+       Point<dim> operator() (const Point<dim> &p) const
+       {
+         if (axis==0)
+           return Point<dim> (p(0),
+                            std::cos(angle)*p(1) - std::sin(angle) * p(2),
+                            std::sin(angle)*p(1) + std::cos(angle) * p(2));
+         else if (axis==1)
+           return Point<dim> (std::cos(angle)*p(0) + std::sin(angle) * p(2),
+                            p(1),
+                            -std::sin(angle)*p(0) + std::cos(angle) * p(2));
+         else
+           return Point<dim> (std::cos(angle)*p(0) - std::sin(angle) * p(1),
+                            std::sin(angle)*p(0) + std::cos(angle) * p(1),
+                            p(2));
+       }
+     private:
+       const double angle;
+       const unsigned int axis;
+     };
+
 
   template <int dim>
   class Solid
@@ -430,9 +468,12 @@ namespace Brain_growth
     n_q_points (qf_cell.size()),
     n_q_points_f (qf_face.size())
   {
-            Assert(dim == 2 ,
-                 ExcMessage("This problem only works in 2D space dimensions."));
-            determine_component_extractors();
+        Assert((parameters.ventricular_raduis >= 0.2)||(parameters.ventricular_raduis <= (1-parameters.cortex_thickness)),
+                       ExcMessage("The dvision raduis must be biger than 0.2 and smaller than (1-cortex thickness)"));
+
+        Assert(dim == 2 || dim == 3,
+                    ExcMessage("This problem only works in 2 or 3 space dimensions."));
+               determine_component_extractors();
   }
 
 
@@ -871,29 +912,40 @@ template <int dim>
 
  template <int dim>
   void Solid<dim>::make_grid()
-  {
-
-	const Point<dim> Center (0.0, 0.0);
-	GridGenerator::quarter_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
-    global_Omega_diameter = GridTools::diameter(triangulation);
-         
+{
+    const double PI = 3.1451592654;
+    const double angle = PI/2;
+    if (dim ==2){
+        const Point<dim> Center (0.0, 0.0);
+        GridGenerator::quarter_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
+        global_Omega_diameter = GridTools::diameter(triangulation);
+        GridTools::rotate(angle, triangulation);
+        const SphericalManifold<dim> manifold(Center);
+        triangulation.set_all_manifold_ids_on_boundary(0);
+        triangulation.refine_global(std::max (1U, parameters.global_refinements));
+        triangulation.set_manifold (0, manifold);
+    }
     
-      const double PI = 3.1451592654;
-      const double angle = PI/2;
+    else if (dim ==3){
+        const Point<dim> Center (0.0, 0.0,0.0);
+        GridGenerator::half_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
+        global_Omega_diameter = GridTools::diameter(triangulation);
+        GridTools::transform (Rotate3d<dim>(angle, 2), triangulation);
+        const SphericalManifold<dim> manifold(Center);
+        triangulation.set_all_manifold_ids_on_boundary(0);
+        triangulation.refine_global(std::max (1U, parameters.global_refinements));
+        triangulation.set_manifold (0, manifold);
 
+    }
+    else
+        Assert(dim<3, ExcInternalError());
+    
 
-      GridTools::rotate(angle, triangulation);
+  vol_reference = GridTools::volume(triangulation);
+  vol_current = vol_reference;
+  std::cout << "Grid:\n\t Reference volume: " << vol_reference << std::endl;
 
-      const SphericalManifold<dim> manifold(Center);
-      triangulation.set_all_manifold_ids_on_boundary(0);
-      triangulation.refine_global(std::max (1U, parameters.global_refinements));
-      triangulation.set_manifold (0, manifold);
-      
-    vol_reference = GridTools::volume(triangulation);
-    vol_current = vol_reference;
-    std::cout << "Grid:\n\t Reference volume: " << vol_reference << std::endl;
- 
-  }
+}
 
 
 
@@ -1174,7 +1226,7 @@ template <int dim>
   Solid<dim>::solve_nonlinear_timestep(BlockVector<double> &solution_delta, bool &CONVERGED)
   {
     std::cout << std::endl << "Timestep " << time.get_timestep() << " @ "
-              << time.current() << "s  " << "@" << "  delta t "<<time.get_delta_t()<< std::endl;
+      << time.current() << " gestational day " << "@" << std::trunc(time.current()/7)  << " gestational week "<< "@" << "  delta t "<<time.get_delta_t()<< std::endl;
 
     CONVERGED = false;
     BlockVector<double> newton_update(dofs_per_block);
@@ -1899,84 +1951,141 @@ template <int dim>
 
   template <int dim>
   void Solid<dim>::make_constraints(const int &it_nr)
-  {
-    std::cout << " CST " << std::flush;
-
-
-    if (it_nr > 1)
-      return;
-    constraints.clear();
-    const bool apply_dirichlet_bc = (it_nr == 0);
-	const FEValuesExtractors::Vector displacement(0);
-	const FEValuesExtractors::Scalar y_displacement(1);
-	const FEValuesExtractors::Scalar x_displacement(0);
-
-
 {
-		const int boundary_id = 2;
+  std::cout << " CST " << std::flush;
 
-	if (apply_dirichlet_bc == true)
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(y_displacement));
-	
-	}
-	else
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(y_displacement));	
+    if (dim==2){
+        if (it_nr > 1)
+            return;
+        constraints.clear();
+        const bool apply_dirichlet_bc = (it_nr == 0);
+        const FEValuesExtractors::Vector displacement(0);
+        const FEValuesExtractors::Scalar y_displacement(1);
+        const FEValuesExtractors::Scalar x_displacement(0);
+        
+        
+        {
+            const int boundary_id = 2;
+            
+            if (apply_dirichlet_bc == true)
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(y_displacement));
+                
+            }
+            else
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(y_displacement));
+                
+            }
+        }
+        {
+            const int boundary_id = 3;
+            
+            if (apply_dirichlet_bc == true)
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(x_displacement));
+                
+            }
+            else
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(x_displacement));
+                
+            }
+        }
+        {
+            const int boundary_id = 0;
+            if (apply_dirichlet_bc == true)
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(displacement));
+            }
+            else
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                         boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                         constraints,
+                                                         fe.component_mask(displacement));
+            }
+        }
+    }
+  
+    else if (dim==3){
+        if (it_nr > 1)
+          return;
+        constraints.clear();
+        const bool apply_dirichlet_bc = (it_nr == 0);
+        const FEValuesExtractors::Vector displacement(0);
+        const FEValuesExtractors::Scalar x_displacement(0);
+        const FEValuesExtractors::Scalar y_displacement(1);
+        const FEValuesExtractors::Scalar z_displacement(2);
+        
+        
+        {
+                const int boundary_id = 2;
 
-	}
-}
-{
-		const int boundary_id = 3;
+            if (apply_dirichlet_bc == true)
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                        boundary_id,
+                                                        ZeroFunction<dim>(n_components),
+                                                        constraints,
+                                                        fe.component_mask(y_displacement));
+            
+            }
+            else
+            {
+                 VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                                                        boundary_id,
+                                                         ZeroFunction<dim>(n_components),
+                                                        constraints,
+                                                        fe.component_mask(y_displacement));
 
-	if (apply_dirichlet_bc == true)
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(x_displacement));
-	
-	}
-	else
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(x_displacement));	
+            }
+        } // for half geomtery
 
-	}
-}
-{
-	const int boundary_id = 0;
-	if (apply_dirichlet_bc == true)
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(displacement));
-	}
-	else
-	{
-		VectorTools::interpolate_boundary_values(dof_handler_ref,
-												boundary_id,
-												ZeroFunction<dim>(n_components),
-												constraints,
-												fe.component_mask(displacement));	
-	}
-}
+        {
+            const int boundary_id = 0;
+            if (apply_dirichlet_bc == true)
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                        boundary_id,
+                                                        ZeroFunction<dim>(n_components),
+                                                        constraints,
+                                                        fe.component_mask(displacement));
+            }
+            else
+            {
+                VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                        boundary_id,
+                                                        ZeroFunction<dim>(n_components),
+                                                        constraints,
+                                                        fe.component_mask(displacement));
+            }
+        }
+        
+    }
 
-    constraints.close();
+  constraints.close();
 }
 
 
@@ -3409,27 +3518,29 @@ void Solid<dim>::diffusion_projection(BlockVector<double> &diffusion_values)
 }
 }
 
-int main ()
+int main (int argc, char* argv[])
 {
   using namespace dealii;
   using namespace Brain_growth;
 
+    Assert(argc<3, ExcMessage("This project needs two arguments as input, the first is the name of the parameters file, and the second is the geometry dimensionality of problem 2 or 3."));
+
   try
     {
-      Solid<2> solid_2d("Parameters.prm");
-      solid_2d.run();
-    }
-  catch (std::exception &exc)
-    {
-      std::cerr << std::endl << std::endl
-                << "----------------------------------------------------"
-                << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what()
-                << std::endl << "Aborting!" << std::endl
-                << "----------------------------------------------------"
-                << std::endl;
+       int dim = strtol(argv[2],NULL, 10);
+        if (dim == 2){
+            Solid<2> solid_2d(argv[1]);
+            solid_2d.run();
 
-      return 1;
+        }
+        
+        else if (dim==3){
+            Solid<3> solid_3d(argv[1]);
+            solid_3d.run();
+        }
+      else
+        Assert(dim<3, ExcInternalError());
+        
     }
   catch (...)
     {

@@ -29,8 +29,6 @@ subsection General
  # Mitotic somal translocation factor (value <= 0.1)
 	set Mitotic somal translocation factor            = 0.02
 
- # Damention ratio
-        set Damention ratio                               = 1.2
 	
  # Total time
         set Total time 	                                 = 10000
@@ -53,6 +51,9 @@ subsection General
  # The tolerance wrt the normalised residual norm
         set Tolerance update                             = 1.0e-4
 
+# The state of the stiffness Constant or Varying
+        set The state of the stiffness                   = Varying 
+
  # The value of the Poisson's ratio
         set Poisson's ratio                              = 0.38
 
@@ -60,7 +61,7 @@ subsection General
         set The shear modulus of conrtex                 = 2.07
 
  # The ratio of stiffness between cortex and subcortex  mu_cmax/mu_smax
-        set The ratio of stiffness                       = 8 
+        set The ratio of stiffness                       = 3
 
  # The max cell density where the stiffness still constant c_max
         set The max cell density                         = 700
@@ -72,28 +73,50 @@ subsection General
         set Growth exponent                              = 1.65
 
  # Growth ratio
-        set  Growth ratio                                = 1 
+        set  Growth ratio                                = 1.5 
 
- # Cell dvision rate in ventricular zone G^c_v [1/(mm^2 wk)]
-        set Cell dvision rate of RGCs                    = 60 
+ # Outer radial glia cell migration speed  [mm/wk]
+	set IP cell migration speed			 = 0.25
 
- # Cell dvision rate in outer-subventricular zone G^c_ovz [1/(mm^2 wk)]
-        set Cell dvision rate of Outer RGCs              = 10 
+ 
+ # Intermediate progenitor cell migration speed  [mm/wk]
+	set ORG cell migration speed			 = 5
+
+ # Neurons cell migration speed  [mm/wk]
+	set NU cell migration speed			 = 2.5
+
+ # Radial glia cells diffusivity  d^cc [mm^2/wk]
+	set RG diffusivity				 = 0.1
+
+ # Intermediate progenitor cells diffusivity  d^cc [mm^2/wk]
+	set IP diffusivity				 = 0.1
+
+ # Outer radial glia diffusivity  d^cc [mm^2/wk]
+	set ORG diffusivity				 = 0.1
+
+ # Neurons diffusivity  d^cc [mm^2/wk]
+	set NU diffusivity				 = 0.11
 
  # Cell dvision intial value [1/(mm^2)]
-	set Cell dvision intial value                    = 0
-
- # Cell migration speed  [mm/wk] 
-        set Cell migration speed                         = 5
-
- # Diffusivity  d^cc [mm^2/wk]
-        set Diffusivity                                  = 0.11
+	set Cell dvision intial value                    = 10
    
  # Cell migration threshold  c_0 [1/mm^3]
         set Cell migration threshold                     = 500
 
  # Heaviside function exponent  gamma
         set Heaviside function exponent                  = 0.008
+
+ # On which gestational day the first division phase end?
+	set First phase					 = 30
+
+ # On which gestational day the second division phase end?
+	set Second phase 				= 60
+
+ # On which gestational day the third division phase end?
+	set Third phase					= 84
+
+ # On which gestational day the fourth division phase end?
+	set Fourth Phase 				= 120 	
   
  # Linear solver type (CG or Direct)
         set Linear solver type                           = Direct              
@@ -103,6 +126,42 @@ subsection General
 
  # c_k factor (CFL condition)
         set c_k factor                                   =0.33334 
+
+	set RG/RG_n P1	= 1
+	set RG/RG_n P2  = 0
+	set RG/RG_n P3  = 0
+	set RG/RG_n P4  = 0
+	set RG/RG_n P5  = 0
+	
+	set IP/Rg_n P1  = 0
+	set IP/Rg_n P2  = 1
+	set IP/Rg_n P3  = 0 
+	set IP/Rg_n P4  = 0
+	set IP/Rg_n P5  = 0
+
+	set IP/OR_n P1  = 0	
+	set IP/OR_n P2  = 0	 
+	set IP/OR_n P3  = 1
+	set IP/OR_n P4  = 1
+	set IP/OR_n P5  = 0	 
+	 
+	set IP/IP_n P1  = 0
+	set IP/IP_n P2  = 0
+	set IP/IP_n P3  = 0
+	set IP/IP_n P4  = 0
+	set IP/IP_n P5  = 1
+
+	set OR/RG_n P1  = 0
+	set OR/RG_n P2  = 0
+	set OR/RG_n P3  = 1
+	set OR/RG_n P4  = 0
+	set OR/RG_n P5  = 0
+
+	set NU/IP_n P1  = 0
+	set NU/IP_n P2  = 0
+	set NU/IP_n P3  = 2
+	set NU/IP_n P4  = 2
+	set NU/IP_n P5  = 4 
 
 end
 

@@ -21,10 +21,11 @@ struct GeneralParameters
 	GeneralParameters(const std::string &input_filename);
 	std::string output_file_name;
     std::string solver_type;
+    std::string stiffness_case;
     std::vector<double> zones_raduis;
     std::vector<double> migration_speed;
     std::vector<double> diffusivity;
-    std::vector<double> Phase_weeks;
+    std::vector<double> phase_days;
     std::vector<std::vector<int> > phase_ratio;
 	double tolerance_residual_u;
     double tolerance_residual_c;
@@ -65,7 +66,7 @@ struct GeneralParameters
 };
 
 GeneralParameters::GeneralParameters(const std::string &input_filename):
-zones_raduis(4,0), migration_speed(4, 0), diffusivity(4, 0), Phase_weeks(4,0), phase_ratio(6, std::vector<int>(5, 0))
+zones_raduis(4,0), migration_speed(4, 0), diffusivity(4, 0), phase_days(4,0), phase_ratio(6, std::vector<int>(5, 0))
 {
 	ParameterHandler prm;
 	declare_parameters(prm);
@@ -92,10 +93,6 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
         prm.declare_entry ("Grid scale","1",
 						   Patterns::Double(),
 				 "Grid scale");
-        
-        prm.declare_entry ("Damention ratio","1",
-						   Patterns::Double(),
-				 "Damention ratio");
         
         prm.declare_entry ("Initial radius","0.5",
 						   Patterns::Double(),
@@ -148,41 +145,37 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
 						   Patterns::Double(),
 						   "The tolerance wrt the normalised residual norm");
         
-		prm.declare_entry ("Poisson's ratio","0.45",
+        prm.declare_entry("The state of the stiffness","Varying",
+                          Patterns::Anything(),
+                          "The state of the stiffness Constant or Varying");
+        
+		prm.declare_entry ("Poisson's ratio","0.38",
 						   Patterns::Double(),
 						   "The value of the Poisson's ratio");
         
-        prm.declare_entry ("The shear modulus of conrtex","2",
+        prm.declare_entry ("The shear modulus of conrtex","2.07",
 						   Patterns::Double(),
 						   "The shear modulus of conrtex layer [KPa]");
         
-		prm.declare_entry ("The ratio of stiffness","3.5",
+		prm.declare_entry ("The ratio of stiffness","3",
 						   Patterns::Double(),
 						   "The ratio of stiffness between cortex and subcortex  mu_cmax/mu_smax");
         
-		prm.declare_entry ("The max cell density","400",
+		prm.declare_entry ("The max cell density","700",
 						   Patterns::Double(),
 						   "The max cell density where the stiffness still constant c_max");
         
-		prm.declare_entry ("Growth rate","1e-3",
+		prm.declare_entry ("Growth rate","4.7e-4",
 						   Patterns::Double(),
 					"Growth rate k_s mm^2");
         
-        prm.declare_entry ("Growth exponent","1",
+        prm.declare_entry ("Growth exponent","1.65",
 						   Patterns::Double(),
 					"Growth exponent alpha ");
         
-        prm.declare_entry ("Growth ratio","0.5",
+        prm.declare_entry ("Growth ratio","1.5",
 						   Patterns::Double(),
 					"Growth ratio bitta_k");
-
-        prm.declare_entry ("Cell dvision rate of RGCs","120",
-						   Patterns::Double(),
-					"Cell dvision rate in ventricular zone G^c_v [1/(mm^2 wk)]");
-
-        prm.declare_entry ("Cell dvision rate of Outer RGCs","0",
-						   Patterns::Double(),
-					"Cell dvision rate in outer-subventricular zone G^c_ovz [1/(mm^2 wk)]");
 
         prm.declare_entry ("Cell dvision intial value","5",
 						   Patterns::Double(),
@@ -220,25 +213,25 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
  						   Patterns::Double(),
 					"Cell migration threshold  c_0 [1/mm^3]");
         
-        prm.declare_entry ("Heaviside function exponent","20",
+        prm.declare_entry ("Heaviside function exponent","0.008",
  						   Patterns::Double(),
 					"Heaviside function exponent  gamma");
         
-        prm.declare_entry("First Phase week", "5",
+        prm.declare_entry("First phase", "30",
                           Patterns::Double(),
-                          "In which week the first divsion phase end?");
+                          "On which gestational day the first division phase end?");
         
-        prm.declare_entry("Second Phase week", "10",
+        prm.declare_entry("Second phase", "60",
                           Patterns::Double(),
-                          "In which week the first divsion phase end?");
+                          "On which gestational day the second division phase end?");
         
-        prm.declare_entry("Third Phase week", "15",
+        prm.declare_entry("Third phase", "84",
                           Patterns::Double(),
-                          "In which week the third divsion phase end?");
+                          "On which gestational day the third division phase end?");
         
-        prm.declare_entry("Fourth Phase week", "25",
+        prm.declare_entry("Fourth Phase", "120",
                           Patterns::Double(),
-                          "In which week the fourth divsion phase end?");
+                          "On which gestational day the fourth division phase end?");
         
         prm.declare_entry ("Linear solver type", "CG",
 					      Patterns::Anything(),
@@ -252,41 +245,41 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
                            Patterns::Double(),
                            "c_k factor (CFL condition)");
         
-        prm.declare_entry ("RG/RG_n P1", "1", Patterns::Integer(1,4));
-        prm.declare_entry ("RG/RG_n P2", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("RG/RG_n P3", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("RG/RG_n P4", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("RG/RG_n P5", "0", Patterns::Integer(1,4));
+        prm.declare_entry ("RG/RG_n P1", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("RG/RG_n P2", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("RG/RG_n P3", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("RG/RG_n P4", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("RG/RG_n P5", "0", Patterns::Integer(0,4));
         
-        prm.declare_entry ("IP/Rg_n P1", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/Rg_n P2", "1", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/Rg_n P3", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/Rg_n P4", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/Rg_n P5", "0", Patterns::Integer(1,4));
+        prm.declare_entry ("IP/Rg_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/Rg_n P2", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/Rg_n P3", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/Rg_n P4", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/Rg_n P5", "0", Patterns::Integer(0,4));
 
-        prm.declare_entry ("IP/OR_n P1", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/OR_n P2", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/OR_n P3", "1", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/OR_n P4", "1", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/OR_n P5", "0", Patterns::Integer(1,4));
+        prm.declare_entry ("IP/OR_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/OR_n P2", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/OR_n P3", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/OR_n P4", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/OR_n P5", "0", Patterns::Integer(0,4));
         
-        prm.declare_entry ("IP/IP_n P1", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/IP_n P2", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/IP_n P3", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/IP_n P4", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("IP/IP_n P1", "1", Patterns::Integer(1,4));
+        prm.declare_entry ("IP/IP_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/IP_n P2", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/IP_n P3", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/IP_n P4", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/IP_n P1", "1", Patterns::Integer(0,4));
 
-        prm.declare_entry ("OR/RG_n P1", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("OR/RG_n P2", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("OR/RG_n P3", "1", Patterns::Integer(1,4));
-        prm.declare_entry ("OR/RG_n P4", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("OR/RG_n P5", "0", Patterns::Integer(1,4));
+        prm.declare_entry ("OR/RG_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("OR/RG_n P2", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("OR/RG_n P3", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("OR/RG_n P4", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("OR/RG_n P5", "0", Patterns::Integer(0,4));
 
-        prm.declare_entry ("NU/IP_n P1", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("NU/IP_n P2", "0", Patterns::Integer(1,4));
-        prm.declare_entry ("NU/IP_n P3", "2", Patterns::Integer(1,4));
-        prm.declare_entry ("NU/IP_n P4", "2", Patterns::Integer(1,4));
-        prm.declare_entry ("NU/IP_n P5", "4", Patterns::Integer(1,4));
+        prm.declare_entry ("NU/IP_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("NU/IP_n P2", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("NU/IP_n P3", "2", Patterns::Integer(0,4));
+        prm.declare_entry ("NU/IP_n P4", "2", Patterns::Integer(0,4));
+        prm.declare_entry ("NU/IP_n P5", "4", Patterns::Integer(0,4));
         
 	}
 	prm.leave_subsection ();
@@ -296,6 +289,7 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
 {
     prm.enter_subsection("General");
     {
+        stiffness_case = prm.get("The state of the stiffness");
         tolerance_residual_u=prm.get_double("Tolerance residual deformation");
         tolerance_residual_c=prm.get_double("Tolerance residual diffusion");
         global_refinements =prm.get_integer("Number global refinements");
@@ -336,10 +330,10 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         damention_ratio = prm.get_double("Damention ratio");
         Betta = prm.get_double("Stabilization constant");
         c_k = prm.get_double("c_k factor");
-        Phase_weeks[0] = prm.get_double("First Phase week");
-        Phase_weeks[1] = prm.get_double("Second Phase week");
-        Phase_weeks[2] = prm.get_double("Third Phase week");
-        Phase_weeks[3] = prm.get_double("Fourth Phase week");
+        phase_days[0] = prm.get_double("First Phase");
+        phase_days[1] = prm.get_double("Second Phase");
+        phase_days[2] = prm.get_double("Third Phase");
+        phase_days[3] = prm.get_double("Fourth Phase");
         phase_ratio[0][0] = prm.get_integer("RG/RG_n P1");
         phase_ratio[0][1] = prm.get_integer("RG/RG_n P2");
         phase_ratio[0][2] = prm.get_integer("RG/RG_n P3");

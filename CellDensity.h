@@ -20,7 +20,7 @@ class CellDensity
                 const std::vector<double> P_weeks, const std::vector<std::vector<int> > P_ratios):
         c_0(cell_migration_threshold),gamma(exponent), c_mst(MST_factor),
         r_osvz_t(Z_raduis[ISVZ]), v(cell_migration_speed), d_cc(diffusivity),
-        zones_radius(Z_raduis), phase_weeks(P_weeks), phase_ratio(P_ratios),
+        zones_radius(Z_raduis), phase_days(P_weeks), phase_ratio(P_ratios),
         grad_c_s(4, Tensor<1, dim>()), first_flux_terms(4, Tensor<1, dim>()),
         second_flux_terms(4, Tensor<1, dim>()), flux_derivatives(4, Tensor<1, dim>()),
         diffusion_tensor (4, Tensor<2 ,dim>()), flux_deformation_derivatives(4, Tensor<3, dim>())
@@ -68,14 +68,13 @@ class CellDensity
                 } // compute dq_dF_Ft
            }
       
-    void compute_denisty_source(const double t, const double d_t ,const std::vector<double> Old_values, std::vector<double> &sources)
-         {
-            const int a= 10;
-            int ph = (t < phase_weeks[0] ? 0 : (t < phase_weeks[1] ? 1 : (t < phase_weeks[2] ? 2 : (t < phase_weeks[3] ? 3 : 4))));
-            sources[RG] = phase_ratio[0][ph]  * Old_values[RG];
-            sources[IP] = phase_ratio[1][ph]  * Old_values[RG] + phase_ratio[2][ph]  * Old_values[OR] - (phase_ratio[3][ph]/a) * Old_values[IP];
-            sources[OR] = phase_ratio[4][ph]  * Old_values[RG];
-            sources[NU] = (phase_ratio[5][ph]/a)  * Old_values[IP];
+    void compute_denisty_source(const double t, const double d_t,  const int a ,const std::vector<double> Old_values, std::vector<double> &sources)
+    {
+        int ph = (t < phase_days[0] ? 0 : (t < phase_days[1] ? 1 : (t < phase_days[2] ? 2 : (t < phase_days[3] ? 3 : 4))));
+            sources[RG] = std::pow(phase_ratio[0][ph],d_t)  * Old_values[RG];
+            sources[IP] = std::pow(phase_ratio[1][ph],d_t)  * Old_values[RG] + std::pow(phase_ratio[2][ph],d_t)  * Old_values[OR] - std::pow(phase_ratio[3][ph],d_t) * Old_values[IP];
+            sources[OR] = std::pow(phase_ratio[4][ph],d_t)  * Old_values[RG];
+            sources[NU] = std::pow(phase_ratio[5][ph],d_t)  * Old_values[IP];
         
       
                }
@@ -93,7 +92,11 @@ class CellDensity
     }
         
         double  get_v_r(const Point<dim> &p, const int cell_type)  {
-            double r = p.distance(Point<dim>(0.0,0.0));
+            double r =0;
+            if (dim ==2)
+                r = p.distance(Point<dim>(0.0,0.0));
+            else if (dim ==3)
+                r = p.distance(Point<dim>(0.0,0.0, 0.0));
             double exp = (cell_type == NU)? 10:20;
             double R = (cell_type == NU)? zones_radius[CR]:r_osvz_t;
             return (v[cell_type]*(1-heaviside_function((r-R),exp)));
@@ -101,7 +104,11 @@ class CellDensity
     
         double  get_dcc_r(const Point<dim> &p, const int cell_type)  {
             double value = 0;
-            double r = p.distance(Point<dim>(0.0,0.0));
+            double r =0;
+            if (dim ==2)
+                r = p.distance(Point<dim>(0.0,0.0));
+            else if (dim ==3)
+                r = p.distance(Point<dim>(0.0,0.0, 0.0));
             
             if (cell_type == NU)
                 value = d_cc[cell_type] * (heaviside_function((r-zones_radius[CR]),10));
@@ -148,7 +155,7 @@ class CellDensity
         std::vector<double> v;   // v_rg v_ip v_or v_nu
         std::vector<double> d_cc;
         std::vector<double> zones_radius;            // vz isvz osvz c
-        std::vector<double> phase_weeks;
+        std::vector<double> phase_days;
         std::vector<std::vector<int> > phase_ratio; // r_rg r_ip r_or r_nu
 
         std::vector<Tensor<1 ,dim> > grad_c_s;            // ip or nu

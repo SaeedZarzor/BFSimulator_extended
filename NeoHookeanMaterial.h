@@ -19,8 +19,8 @@ class NeoHookeanMaterial
 {
     public:
 				
-        NeoHookeanMaterial(const double shear_modulud_cortex, const double Poisson, const double stiffness_ratio, const double max_cell_density, const double subcortix_raduis):
-        mu_cmax(shear_modulud_cortex), mu_s(shear_modulud_cortex/stiffness_ratio)
+        NeoHookeanMaterial(const std::string stiffness_case, const double shear_modulud_cortex, const double Poisson, const double stiffness_ratio, const double max_cell_density, const double subcortix_raduis):
+    st_case(stiffness_case), mu_cmax(shear_modulud_cortex), mu_s(shear_modulud_cortex/stiffness_ratio)
        ,nu(Poisson), c_max(max_cell_density), R_c(subcortix_raduis),
         F_e( Physics::Elasticity::StandardTensors< dim >::I), J_e(1.0)
         {}
@@ -31,12 +31,23 @@ class NeoHookeanMaterial
 	 void update_material_data(const Tensor<2, dim> &F_elastic, const Point<dim> &p, const double &c)
 	    {
              
-          double mu_c = mu_s + ((mu_cmax - mu_s)/(c_max - 200)) * ((c > c_max)? (c_max - 200):(c - 200)) * ( c< 200? 0:1);
+         double mu_c = 0, dmuc_dc=0;
+         if (st_case == "Varying"){
+              mu_c = mu_s + ((mu_cmax - mu_s)/(c_max-200)) * ((c > c_max)? (c_max-200):(c-200)) * (c<200? 0:1);
+              dmuc_dc = ((mu_cmax - mu_s)/(c_max-200)) * ((c > c_max)? 0:1) * (c<200? 0:1);
+         }
+         else if (st_case == "Constant"){
+             mu_c = mu_cmax;
+             dmuc_dc = 0;
+         }
 
-	      double dmuc_dc = ((mu_cmax - mu_s)/(c_max - 200)) * ((c > c_max)? 0:1) * (c < 200? 0:1);
-
-	      double r = p.distance(Point<dim>(0.0,0.0));
-
+         double r = 0;
+         if (dim==2)
+             r = p.distance(Point<dim>(0.0,0.0));
+         else if (dim ==2)
+             r = p.distance(Point<dim>(0.0,0.0, 0.0));
+         
+         
 	      H = std::exp((r-R_c)*20)/(1+std::exp((r-R_c)*20));
           mu = mu_s + ((mu_c - mu_s) * H);
 	      dmu_dc = dmuc_dc * H;
@@ -99,6 +110,7 @@ class NeoHookeanMaterial
 
     protected:
 
+    const std::string st_case;
     const double mu_cmax;
 	const double mu_s;
     const double nu;

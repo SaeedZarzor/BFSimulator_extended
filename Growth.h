@@ -108,8 +108,13 @@ class Growth {
                double dv_t_dc = 0;
                double dv_r_dc = 0;
 
-               double r = p.distance(Point<dim>(0.0,0.0));
-               double H  = std::exp((r-R_c)*20)/(1+std::exp((r-R_c)*20));
+              double r = 0;
+              if (dim==2)
+                  r = p.distance(Point<dim>(0.0,0.0));
+              else if (dim ==2)
+              r = p.distance(Point<dim>(0.0,0.0, 0.0));
+          
+              double H  = std::exp((r-R_c)*20)/(1+std::exp((r-R_c)*20));
             
    
                 k_t = k_s + (k_s *(b-1)*H);
