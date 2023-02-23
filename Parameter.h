@@ -27,13 +27,10 @@ struct GeneralParameters
     std::vector<double> diffusivity;
     std::vector<double> phase_days;
     std::vector<std::vector<int> > phase_ratio;
-	double tolerance_residual_u;
+    double tolerance_residual_u;
     double tolerance_residual_c;
-	unsigned int global_refinements;
+    unsigned int global_refinements;
     double cortex_thickness;
-    double ventricular_raduis;
-	double subventricular_raduis;
-    double outer_subventricular_raduis;
 	double Poisson;
 	double total_time;
     double time_step;
@@ -51,7 +48,7 @@ struct GeneralParameters
     double exponent;
     double growth_exponent;
     double tol_u;
-    double damention_ratio;
+
     double shear_modulud_cortex;
 	double stiffness_ratio;
 	double max_cell_density;
@@ -217,19 +214,19 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
  						   Patterns::Double(),
 					"Heaviside function exponent  gamma");
         
-        prm.declare_entry("First phase", "30",
+        prm.declare_entry ("First phase", "30",
                           Patterns::Double(),
                           "On which gestational day the first division phase end?");
         
-        prm.declare_entry("Second phase", "60",
+        prm.declare_entry ("Second phase", "60",
                           Patterns::Double(),
                           "On which gestational day the second division phase end?");
         
-        prm.declare_entry("Third phase", "84",
+        prm.declare_entry ("Third phase", "84",
                           Patterns::Double(),
                           "On which gestational day the third division phase end?");
         
-        prm.declare_entry("Fourth Phase", "120",
+        prm.declare_entry ("Fourth phase", "120",
                           Patterns::Double(),
                           "On which gestational day the fourth division phase end?");
         
@@ -251,11 +248,11 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
         prm.declare_entry ("RG/RG_n P4", "0", Patterns::Integer(0,4));
         prm.declare_entry ("RG/RG_n P5", "0", Patterns::Integer(0,4));
         
-        prm.declare_entry ("IP/Rg_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/Rg_n P2", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/Rg_n P3", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/Rg_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/Rg_n P5", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P1", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P2", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P3", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P4", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P5", "0", Patterns::Integer(0,4));
 
         prm.declare_entry ("IP/OR_n P1", "0", Patterns::Integer(0,4));
         prm.declare_entry ("IP/OR_n P2", "0", Patterns::Integer(0,4));
@@ -267,7 +264,7 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
         prm.declare_entry ("IP/IP_n P2", "0", Patterns::Integer(0,4));
         prm.declare_entry ("IP/IP_n P3", "0", Patterns::Integer(0,4));
         prm.declare_entry ("IP/IP_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/IP_n P1", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/IP_n P5", "1", Patterns::Integer(0,4));
 
         prm.declare_entry ("OR/RG_n P1", "0", Patterns::Integer(0,4));
         prm.declare_entry ("OR/RG_n P2", "0", Patterns::Integer(0,4));
@@ -312,12 +309,10 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         zones_raduis[1] = prm.get_double("Subventricular zone raduis");
         zones_raduis[2] = prm.get_double("Outer subventricular zone raduis");
         MST_factor = prm.get_double("Mitotic somal translocation factor");
-        cell_dvision_rate_v = prm.get_double("Cell dvision rate of RGCs");
-        cell_dvision_rate_ovz = prm.get_double("Cell dvision rate of Outer RGCs");
         dvision_value = prm.get_double("Cell dvision intial value");
-        migration_speed[1] = prm.get_double("IP Cell migration speed");
-        migration_speed[2] = prm.get_double("ORG Cell migration speed");
-        migration_speed[3] = prm.get_double("NU Cell migration speed");
+        migration_speed[1] = prm.get_double("IP cell migration speed");
+        migration_speed[2] = prm.get_double("ORG cell migration speed");
+        migration_speed[3] = prm.get_double("NU cell migration speed");
         diffusivity[0] = prm.get_double("RG diffusivity");
         diffusivity[1] = prm.get_double("IP diffusivity");
         diffusivity[2] = prm.get_double("ORG diffusivity");
@@ -327,13 +322,12 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         growth_exponent = prm.get_double("Growth exponent");
         solver_type = prm.get("Linear solver type");
         tol_u = prm.get_double("Tolerance update");
-        damention_ratio = prm.get_double("Damention ratio");
         Betta = prm.get_double("Stabilization constant");
         c_k = prm.get_double("c_k factor");
-        phase_days[0] = prm.get_double("First Phase");
-        phase_days[1] = prm.get_double("Second Phase");
-        phase_days[2] = prm.get_double("Third Phase");
-        phase_days[3] = prm.get_double("Fourth Phase");
+        phase_days[0] = prm.get_double("First phase");
+        phase_days[1] = prm.get_double("Second phase");
+        phase_days[2] = prm.get_double("Third phase");
+        phase_days[3] = prm.get_double("Fourth phase");
         phase_ratio[0][0] = prm.get_integer("RG/RG_n P1");
         phase_ratio[0][1] = prm.get_integer("RG/RG_n P2");
         phase_ratio[0][2] = prm.get_integer("RG/RG_n P3");
@@ -378,8 +372,9 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
     Assert((zones_raduis[2] >= zones_raduis[1] )||(zones_raduis[2] <= (1-cortex_thickness)),
            ExcMessage("The Outer subventricular zone raduis must be biger than Subventricular zone raduis and smaller than (1 - cortex thickness)"));
     
-    for (unsigned int i = 0; i < 3; ++i)
-      zones_raduis[i] *= initial_radius;
+    for (unsigned int i = 0; i < 3; ++i){
+      	zones_raduis[i] *= initial_radius;
+	}
     
       zones_raduis[3] = (1-cortex_thickness) * initial_radius;
     

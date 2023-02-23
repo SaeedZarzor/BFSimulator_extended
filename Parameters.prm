@@ -75,11 +75,10 @@ subsection General
  # Growth ratio
         set  Growth ratio                                = 1.5 
 
- # Outer radial glia cell migration speed  [mm/wk]
+ # Intermediate progenitor cell migration speed  [mm/wk]
 	set IP cell migration speed			 = 0.25
 
- 
- # Intermediate progenitor cell migration speed  [mm/wk]
+ # Outer radial glia cell migration speed  [mm/wk]
 	set ORG cell migration speed			 = 5
 
  # Neurons cell migration speed  [mm/wk]
@@ -116,7 +115,7 @@ subsection General
 	set Third phase					= 84
 
  # On which gestational day the fourth division phase end?
-	set Fourth Phase 				= 120 	
+	set Fourth phase 				= 120 	
   
  # Linear solver type (CG or Direct)
         set Linear solver type                           = Direct              
@@ -133,11 +132,11 @@ subsection General
 	set RG/RG_n P4  = 0
 	set RG/RG_n P5  = 0
 	
-	set IP/Rg_n P1  = 0
-	set IP/Rg_n P2  = 1
-	set IP/Rg_n P3  = 0 
-	set IP/Rg_n P4  = 0
-	set IP/Rg_n P5  = 0
+	set IP/RG_n P1  = 0
+	set IP/RG_n P2  = 1
+	set IP/RG_n P3  = 0 
+	set IP/RG_n P4  = 0
+	set IP/RG_n P5  = 0
 
 	set IP/OR_n P1  = 0	
 	set IP/OR_n P2  = 0	 

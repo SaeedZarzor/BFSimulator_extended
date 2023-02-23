@@ -59,7 +59,7 @@ class CellDensity
                    Tensor<2, dim> nxn = outer_product(n,n);
                    Tensor<2, dim> direction_derivative = I - (a * nxn);
                    
-                   for(int d = 0; d < flux_deformation_derivatives.size(); ++d){
+                   for(unsigned int d = 0; d < flux_deformation_derivatives.size(); ++d){
                        cof_2[d] = -c[d] * heaviside_function((c[d]-c_0), gamma) * (get_v_r(p, d)/n.norm());
                        flux_deformation_derivatives[d] = cof_2[d] * outer_product(direction_derivative, n);
                        flux_deformation_derivatives[d] -= outer_product(grad_c_s[d], diffusion_tensor[d]);
@@ -68,7 +68,7 @@ class CellDensity
                 } // compute dq_dF_Ft
            }
       
-    void compute_denisty_source(const double t, const double d_t,  const int a ,const std::vector<double> Old_values, std::vector<double> &sources)
+    void compute_denisty_source(const double t, const double d_t,const std::vector<double> Old_values, std::vector<double> &sources)
     {
         int ph = (t < phase_days[0] ? 0 : (t < phase_days[1] ? 1 : (t < phase_days[2] ? 2 : (t < phase_days[3] ? 3 : 4))));
             sources[RG] = std::pow(phase_ratio[0][ph],d_t)  * Old_values[RG];

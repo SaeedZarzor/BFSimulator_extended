@@ -95,9 +95,9 @@ class Growth {
           
           double total_density = 0;
           
-          for(unsigned int i = 0; i< c.size(); ++i)
+          for(unsigned int i = 0; i< c.size(); ++i){
               total_density += c[i];
-   
+   		}
 
               Tensor<1, dim> N = (Tensor<1, dim>(p/p.norm()));
               Tensor<2, dim> normal_direction = outer_product(N,N);

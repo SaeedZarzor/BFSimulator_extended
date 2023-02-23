@@ -22,10 +22,10 @@ class PointHistory
 {
 public:
 	PointHistory():
-	    F(Physics::Elasticity::StandardTensors< dim >::I),
-       	    inv_F_g(Physics::Elasticity::StandardTensors< dim >::I), sources(4, 0), dcc_r(4, 0),
-	    old_velocity_values(4, Tensor<1, dim>()), old_old_velocity_values(4, Tensor<1, dim>()), 
-	    J(1.0) {}
+	     sources(4, 0), dcc_r(4, 0), old_velocity_values(4, Tensor<1, dim>()), old_old_velocity_values(4, Tensor<1, dim>()), 
+	     F(Physics::Elasticity::StandardTensors< dim >::I),
+       	     inv_F_g(Physics::Elasticity::StandardTensors< dim >::I),
+	     J(1.0) {}
 
 	~PointHistory(){
 	       delete material;
@@ -62,13 +62,12 @@ public:
               density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.migration_speed, parameter.diffusivity, parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
 
                 
-                 update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), 
-				std::vector<double>(4, 0), 0 , false, std::vector<double>{1.0,1.0,1.0});
+                 update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), std::vector<double>(4, 0), 0 , false);
 	    }
 
           void update_values (const Tensor<2, dim> &Grad_u, const std::vector<Tensor<1, dim> > &Grad_c, const std::vector<double> &c, const Tensor<2, dim> &Grad_u_n ,
                                 const Tensor<2, dim> &Grad_u_n_1,const std::vector<double> &c_n, const std::vector<double>  &c_n_1,
-                                const double &t, bool update, const std::vector<double> &stretch_max)
+                                const double &t, bool update)
     {
 
            F = (Physics::Elasticity::StandardTensors< dim >::I + Grad_u);
@@ -103,7 +102,7 @@ public:
                       F_e = F * inv_F_g;
          
             density-> update_flux(F, Grad_c, c ,p, t);
-            density-> compute_denisty_source(t, d_t, a ,c_n, sources);
+            density-> compute_denisty_source(t, d_t,c_n, sources);
             material-> update_material_data(F_e, p, c_n[NU]);
 
 

@@ -148,13 +148,13 @@ namespace Brain_growth
 
 		
          double r =0;
-         if (dim ==2)
-             r = p.distance(Point<dim>(0.0,0.0));
-         else if (dim ==3)
-             r = p.distance(Point<dim>(0.0,0.0, 0.0));
+         if (dim ==2) {
+             r = p.distance(Point<dim>(0.0,0.0));}
+         else  {
+             r = p.distance(Point<dim>(0.0,0.0, 0.0));}
          
 
-	     double H = (std::exp((r-dvision_raduis)*20))/(1.+std::exp((r-dvision_raduis)*20));
+	double H = (std::exp((r-dvision_raduis)*20))/(1.+std::exp((r-dvision_raduis)*20));
 
              value(dim) = dvision_value*(1-H);
 		}
@@ -325,7 +325,7 @@ class Rotate3d
 
     std::vector<PointHistory<dim> >  quadrature_point_history;
 
-    std::vector<double>              stretch_max{1.0,1.0,1.0}; // [stretch_max , old_stretch_max, old_old_stretch_max]
+//std::vector<double>              stretch_max{1.0,1.0,1.0}; // [stretch_max , old_stretch_max, old_old_stretch_max]
     const unsigned int               degree;
     const FESystem<dim>              fe;
     double                           global_Omega_diameter;
@@ -469,8 +469,6 @@ class Rotate3d
     n_q_points (qf_cell.size()),
     n_q_points_f (qf_face.size())
   {
-        Assert((parameters.ventricular_raduis >= 0.2)||(parameters.ventricular_raduis <= (1-parameters.cortex_thickness)),
-                       ExcMessage("The dvision raduis must be biger than 0.2 and smaller than (1-cortex thickness)"));
 
         Assert(dim == 2 || dim == 3,
                     ExcMessage("This problem only works in 2 or 3 space dimensions."));
@@ -503,7 +501,7 @@ class Rotate3d
       VectorTools::project (dof_handler_ref,
                             constraints,
                             QGauss<dim>(degree+2),
-                            InitialValueC<dim>((parameters.ventricular_raduis*parameters.initial_radius), parameters.dvision_value),
+                            InitialValueC<dim>((parameters.zones_raduis[0]), parameters.dvision_value),
                             solution_n);
                    constraints.distribute(solution_n);
     }
@@ -1216,7 +1214,7 @@ template <int dim>
       lqph[q_point].update_values(scratch.solution_grads_u[q_point],grad_cell_density, cell_density_value,
                       scratch.old_solution_grads_u[q_point], scratch.old_old_solution_grads_u[q_point],
                         old_cell_density_vlaue, old_old_cell_density_vlaue,
-                       time.current(),scratch.update_growth, stretch_max);
+                       time.current(),scratch.update_growth);
      }
   }
 
@@ -1861,7 +1859,6 @@ template <int dim>
           
           const double                  JxW = scratch.fe_values_ref.JxW(q_point);
           const std::vector<SymmetricTensor<2, dim> > &sym_grad_Nx = scratch.symm_grad_Nx_u[q_point];
-          const std::vector<Tensor<2, dim> >    &grd_Nx = scratch.grad_Nx_u[q_point];
           const std::vector<Tensor<1, dim> > &grd_Nx_rg = scratch.grad_Nx_c[RG][q_point];
           const std::vector<Tensor<1, dim> > &grd_Nx_ip = scratch.grad_Nx_c[IP][q_point];
           const std::vector<Tensor<1, dim> > &grd_Nx_or = scratch.grad_Nx_c[OR][q_point];
@@ -2596,13 +2593,14 @@ for(;cell !=endc ; ++cell)
          //c_k_vlaues[cell->active_cell_index()]= (0.5 * cell->diameter()) / max_speed_in_cell;
         }
  
-  stretch_max[2] = stretch_max[1];
+/*  stretch_max[2] = stretch_max[1];
   stretch_max[1] = stretch_max[0];
  for(unsigned int t=0; t<growth_values.size(); ++t)
   {
        if(growth_values[t] > stretch_max[0])
         stretch_max[0] = growth_values[t];
          }
+*/
 
 data_out.add_data_vector(growth_values, "growth_stretch" ,DataOut<dim>::type_cell_data);
 // data_out.add_data_vector(c_k_vlaues, "proposed_time_step" ,DataOut<dim>::type_cell_data);
@@ -3524,9 +3522,10 @@ int main (int argc, char* argv[])
   using namespace dealii;
   using namespace Brain_growth;
 
-    Assert(argc<3, ExcMessage("This project needs two arguments as input, the first is the name of the parameters file, and the second is the geometry dimensionality of problem 2 or 3."));
+    Assert(argc==3, ExcMessage("This project needs two arguments as input, the first is the name of the parameters file, and the second is the geometry dimensionality of problem 2 or 3."));
 
-  try
+
+   try
     {
        int dim = strtol(argv[2],NULL, 10);
         if (dim == 2){
@@ -3540,8 +3539,20 @@ int main (int argc, char* argv[])
             solid_3d.run();
         }
       else
-        Assert(dim<3, ExcInternalError());
+        Assert(dim<=3, ExcInternalError());
         
+    }
+  catch (std::exception &exc)
+    {
+      std::cerr << std::endl << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+      std::cerr << "Exception on processing: " << std::endl << exc.what()
+                << std::endl << "Aborting!" << std::endl
+                << "----------------------------------------------------"
+                << std::endl;
+
+      return 1;
     }
   catch (...)
     {
