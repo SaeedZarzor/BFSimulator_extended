@@ -1225,7 +1225,7 @@ template <int dim>
   Solid<dim>::solve_nonlinear_timestep(BlockVector<double> &solution_delta, bool &CONVERGED)
   {
     std::cout << std::endl << "Timestep " << time.get_timestep() << " @ "
-      << time.current() << " gestational day " << "@" << std::trunc(time.current()/7)  << " gestational week "<< "@" << "  delta t "<<time.get_delta_t()<< std::endl;
+      << time.current() << " gestational day " << " @ " << std::trunc(time.current()/7)  << " gestational week "<< "@" << "  delta t "<<time.get_delta_t()<< std::endl;
 
     CONVERGED = false;
     BlockVector<double> newton_update(dofs_per_block);
