@@ -1,3 +1,4 @@
+
 #ifndef PARAMETER_H
 #define PARAMETER_H
 
@@ -63,7 +64,7 @@ struct GeneralParameters
 };
 
 GeneralParameters::GeneralParameters(const std::string &input_filename):
-zones_raduis(4,0), migration_speed(4, 0), diffusivity(4, 0), phase_days(4,0), phase_ratio(6, std::vector<int>(5, 0))
+zones_raduis(4,0), migration_speed(4, 0), diffusivity(4, 0), phase_days(4,0), phase_ratio(9, std::vector<int>(5, 0))
 {
 	ParameterHandler prm;
 	declare_parameters(prm);
@@ -242,41 +243,59 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
                            Patterns::Double(),
                            "c_k factor (CFL condition)");
         
-        prm.declare_entry ("RG/RG_n P1", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("RG/RG_n P2", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("RG/RG_n P3", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("RG/RG_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("RG/RG_n P5", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("RG/RG_n P1", "1", Patterns::Integer(-1,4));
+        prm.declare_entry ("RG/RG_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("RG/RG_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("RG/RG_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("RG/RG_n P5", "0", Patterns::Integer(-1,4));
         
-        prm.declare_entry ("IP/RG_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/RG_n P2", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/RG_n P3", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/RG_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/RG_n P5", "0", Patterns::Integer(0,4));
-
-        prm.declare_entry ("IP/OR_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/OR_n P2", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/OR_n P3", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/OR_n P4", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/OR_n P5", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/RG_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/RG_n P2", "1", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/RG_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/RG_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/RG_n P5", "0", Patterns::Integer(-1,4));
         
-        prm.declare_entry ("IP/IP_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/IP_n P2", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/IP_n P3", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/IP_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("IP/IP_n P5", "1", Patterns::Integer(0,4));
+        prm.declare_entry ("OR/RG_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/RG_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/RG_n P3", "1", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/RG_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/RG_n P5", "0", Patterns::Integer(-1,4));
+        
+        prm.declare_entry ("NU/RG_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/RG_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/RG_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/RG_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/RG_n P5", "0", Patterns::Integer(-1,4));
 
-        prm.declare_entry ("OR/RG_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("OR/RG_n P2", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("OR/RG_n P3", "1", Patterns::Integer(0,4));
-        prm.declare_entry ("OR/RG_n P4", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("OR/RG_n P5", "0", Patterns::Integer(0,4));
+        prm.declare_entry ("IP/OR_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/OR_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/OR_n P3", "1", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/OR_n P4", "1", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/OR_n P5", "0", Patterns::Integer(-1,4));
+        
+        prm.declare_entry ("OR/OR_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/OR_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/OR_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/OR_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("OR/OR_n P5", "0", Patterns::Integer(-1,4));
+        
+        prm.declare_entry ("NU/OR_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/OR_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/OR_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/OR_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/OR_n P5", "0", Patterns::Integer(-1,4));
+        
+        prm.declare_entry ("IP/IP_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/IP_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/IP_n P3", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/IP_n P4", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("IP/IP_n P5", "1", Patterns::Integer(-1,4));
 
-        prm.declare_entry ("NU/IP_n P1", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("NU/IP_n P2", "0", Patterns::Integer(0,4));
-        prm.declare_entry ("NU/IP_n P3", "2", Patterns::Integer(0,4));
-        prm.declare_entry ("NU/IP_n P4", "2", Patterns::Integer(0,4));
-        prm.declare_entry ("NU/IP_n P5", "4", Patterns::Integer(0,4));
+        prm.declare_entry ("NU/IP_n P1", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/IP_n P2", "0", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/IP_n P3", "2", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/IP_n P4", "2", Patterns::Integer(-1,4));
+        prm.declare_entry ("NU/IP_n P5", "4", Patterns::Integer(-1,4));
         
 	}
 	prm.leave_subsection ();
@@ -328,36 +347,60 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         phase_days[1] = prm.get_double("Second phase");
         phase_days[2] = prm.get_double("Third phase");
         phase_days[3] = prm.get_double("Fourth phase");
+        
         phase_ratio[0][0] = prm.get_integer("RG/RG_n P1");
         phase_ratio[0][1] = prm.get_integer("RG/RG_n P2");
         phase_ratio[0][2] = prm.get_integer("RG/RG_n P3");
         phase_ratio[0][3] = prm.get_integer("RG/RG_n P4");
         phase_ratio[0][4] = prm.get_integer("RG/RG_n P5");
+        
         phase_ratio[1][0] = prm.get_integer("IP/RG_n P1");
         phase_ratio[1][1] = prm.get_integer("IP/RG_n P2");
         phase_ratio[1][2] = prm.get_integer("IP/RG_n P3");
         phase_ratio[1][3] = prm.get_integer("IP/RG_n P4");
         phase_ratio[1][4] = prm.get_integer("IP/RG_n P5");
-        phase_ratio[2][0] = prm.get_integer("IP/OR_n P1");
-        phase_ratio[2][1] = prm.get_integer("IP/OR_n P2");
-        phase_ratio[2][2] = prm.get_integer("IP/OR_n P3");
-        phase_ratio[2][3] = prm.get_integer("IP/OR_n P4");
-        phase_ratio[2][4] = prm.get_integer("IP/OR_n P5");
-        phase_ratio[3][0] = prm.get_integer("IP/IP_n P1");
-        phase_ratio[3][1] = prm.get_integer("IP/IP_n P2");
-        phase_ratio[3][2] = prm.get_integer("IP/IP_n P3");
-        phase_ratio[3][3] = prm.get_integer("IP/IP_n P4");
-        phase_ratio[3][4] = prm.get_integer("IP/IP_n P5");
-        phase_ratio[4][0] = prm.get_integer("OR/RG_n P1");
-        phase_ratio[4][1] = prm.get_integer("OR/RG_n P2");
-        phase_ratio[4][2] = prm.get_integer("OR/RG_n P3");
-        phase_ratio[4][3] = prm.get_integer("OR/RG_n P4");
-        phase_ratio[4][4] = prm.get_integer("OR/RG_n P5");
-        phase_ratio[5][0] = prm.get_integer("NU/IP_n P1");
-        phase_ratio[5][1] = prm.get_integer("NU/IP_n P2");
-        phase_ratio[5][2] = prm.get_integer("NU/IP_n P3");
-        phase_ratio[5][3] = prm.get_integer("NU/IP_n P4");
-        phase_ratio[5][4] = prm.get_integer("NU/IP_n P5");
+        
+        phase_ratio[2][0] = prm.get_integer("OR/RG_n P1");
+        phase_ratio[2][1] = prm.get_integer("OR/RG_n P2");
+        phase_ratio[2][2] = prm.get_integer("OR/RG_n P3");
+        phase_ratio[2][3] = prm.get_integer("OR/RG_n P4");
+        phase_ratio[2][4] = prm.get_integer("OR/RG_n P5");
+        
+        phase_ratio[3][0] = prm.get_integer("NU/RG_n P1");
+        phase_ratio[3][1] = prm.get_integer("NU/RG_n P2");
+        phase_ratio[3][2] = prm.get_integer("NU/RG_n P3");
+        phase_ratio[3][3] = prm.get_integer("NU/RG_n P4");
+        phase_ratio[3][4] = prm.get_integer("NU/RG_n P5");
+        
+        phase_ratio[4][0] = prm.get_integer("IP/OR_n P1");
+        phase_ratio[4][1] = prm.get_integer("IP/OR_n P2");
+        phase_ratio[4][2] = prm.get_integer("IP/OR_n P3");
+        phase_ratio[4][3] = prm.get_integer("IP/OR_n P4");
+        phase_ratio[4][4] = prm.get_integer("IP/OR_n P5");
+        
+        phase_ratio[5][0] = prm.get_integer("OR/OR_n P1");
+        phase_ratio[5][1] = prm.get_integer("OR/OR_n P2");
+        phase_ratio[5][2] = prm.get_integer("OR/OR_n P3");
+        phase_ratio[5][3] = prm.get_integer("OR/OR_n P4");
+        phase_ratio[5][4] = prm.get_integer("OR/OR_n P5");
+        
+        phase_ratio[6][0] = prm.get_integer("NU/OR_n P1");
+        phase_ratio[6][1] = prm.get_integer("NU/OR_n P2");
+        phase_ratio[6][2] = prm.get_integer("NU/OR_n P3");
+        phase_ratio[6][3] = prm.get_integer("NU/OR_n P4");
+        phase_ratio[6][4] = prm.get_integer("NU/OR_n P5");
+        
+        phase_ratio[7][0] = prm.get_integer("IP/IP_n P1");
+        phase_ratio[7][1] = prm.get_integer("IP/IP_n P2");
+        phase_ratio[7][2] = prm.get_integer("IP/IP_n P3");
+        phase_ratio[7][3] = prm.get_integer("IP/IP_n P4");
+        phase_ratio[7][4] = prm.get_integer("IP/IP_n P5");
+        
+        phase_ratio[8][0] = prm.get_integer("NU/IP_n P1");
+        phase_ratio[8][1] = prm.get_integer("NU/IP_n P2");
+        phase_ratio[8][2] = prm.get_integer("NU/IP_n P3");
+        phase_ratio[8][3] = prm.get_integer("NU/IP_n P4");
+        phase_ratio[8][4] = prm.get_integer("NU/IP_n P5");
 
     }
     

@@ -71,10 +71,10 @@ class CellDensity
     void compute_denisty_source(const double t, const double d_t,const std::vector<double> Old_values, std::vector<double> &sources)
     {
         int ph = (t < phase_days[0] ? 0 : (t < phase_days[1] ? 1 : (t < phase_days[2] ? 2 : (t < phase_days[3] ? 3 : 4))));
-            sources[RG] = std::pow(phase_ratio[0][ph],d_t)  * Old_values[RG];
-            sources[IP] = std::pow(phase_ratio[1][ph],d_t)  * Old_values[RG] + std::pow(phase_ratio[2][ph],d_t)  * Old_values[OR] - std::pow(phase_ratio[3][ph],d_t) * Old_values[IP];
-            sources[OR] = std::pow(phase_ratio[4][ph],d_t)  * Old_values[RG];
-            sources[NU] = std::pow(phase_ratio[5][ph],d_t)  * Old_values[IP];
+        sources[RG] = std::pow((phase_ratio[0][ph]-1),d_t)  * Old_values[RG];
+        sources[IP] = std::pow(phase_ratio[1][ph],d_t) * Old_values[RG] + std::pow(phase_ratio[4][ph],d_t)  * Old_values[OR] + std::pow((phase_ratio[7][ph]-1),d_t) * Old_values[IP];
+        sources[OR] = std::pow(phase_ratio[2][ph],d_t)  * Old_values[RG] + std::pow((phase_ratio[5][ph]-1),d_t)  * Old_values[OR];
+            sources[NU] = std::pow(phase_ratio[3][ph],d_t)  * Old_values[RG]+ std::pow(phase_ratio[6][ph],d_t)  * Old_values[OR] + std::pow(phase_ratio[8][ph],d_t)  * Old_values[IP];
                }
 
     
