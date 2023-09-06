@@ -522,9 +522,14 @@ class Rotate3d
 			
         solution_delta = 0.0;
           for(unsigned int k = 0; k < 3; ++k) {
+//              if(time.current() >= parameters.phase_days[3])
+//                  time.set_delta_t(parameters.time_step*0.25);
+              
               solve_nonlinear_timestep(solution_delta, CONVERGED);
+              
                       if (CONVERGED == true)
                               break;
+              
                   compute_delta_t();
                   }
 
@@ -1214,7 +1219,7 @@ template <int dim>
       lqph[q_point].update_values(scratch.solution_grads_u[q_point],grad_cell_density, cell_density_value,
                       scratch.old_solution_grads_u[q_point], scratch.old_old_solution_grads_u[q_point],
                         old_cell_density_vlaue, old_old_cell_density_vlaue,
-                       time.current(),scratch.update_growth);
+                       time.current(), time.get_delta_t(),scratch.update_growth);
      }
   }
 
@@ -1429,20 +1434,21 @@ template <int dim>
 {
  
     double min_delta_t = time.get_delta_t();
+     min_delta_t = min_delta_t/2 ;
     
-           typename DoFHandler<dim>::active_cell_iterator cell=dof_handler_ref.begin_active(),
-           endc=dof_handler_ref.end();
-          for(;cell !=endc ; ++cell)
-            {
-		    PointHistory<dim> *lqph = reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
-		    double max_speed_in_cell = 0;
-
-		    for(unsigned int q=0;q<n_q_points ; ++q)
-		       max_speed_in_cell = std::max(max_speed_in_cell, lqph[q].get_velocity().norm());
-		       
-                     double current_delta_t = ((parameters.c_k) * cell->diameter()) / max_speed_in_cell;
-		     min_delta_t = std::min(min_delta_t, current_delta_t);
-		    }
+//           typename DoFHandler<dim>::active_cell_iterator cell=dof_handler_ref.begin_active(),
+//           endc=dof_handler_ref.end();
+//          for(;cell !=endc ; ++cell)
+//            {
+//		    PointHistory<dim> *lqph = reinterpret_cast<PointHistory<dim>*>(cell->user_pointer());
+//		    double max_speed_in_cell = 0;
+//
+//		    for(unsigned int q=0;q<n_q_points ; ++q)
+//		       max_speed_in_cell = std::max(max_speed_in_cell, lqph[q].get_velocity().norm());
+//
+//                     double current_delta_t = ((parameters.c_k) * cell->diameter()) / max_speed_in_cell;
+//		     min_delta_t = std::min(min_delta_t, current_delta_t);
+//		    }
      
          time.set_delta_t(min_delta_t);
  

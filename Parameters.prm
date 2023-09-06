@@ -7,7 +7,7 @@ subsection General
         set Poly degree                                   = 2
 
  # The number of mesh global refinements
-        set Number global refinements                     = 3
+        set Number global refinements                     = 2
 
  # Grid scale
         set Grid scale                                    = 1.0
@@ -19,10 +19,13 @@ subsection General
         set Cortex thickness                              = 0.1
  
  # Ventricular zone raduis as a ratio to initial radius (value between 0.2 and 0.6)
-        set Ventricular zone raduis                       = 0.25
+        set Ventricular zone raduis                       = 0.15
 
  # Subventricular zone raduis as a ratio to initial radius (value between ventricular zone raduis and 0.6)
-	set Subventricular zone raduis                    = 0.4
+	set Subventricular zone raduis                    = 0.3
+
+ # Outer subventricular zone raduis as a ratio to initial radius (value between Subventricular ventricular zone raduis and 0.6)
+	set Outer subventricular zone raduis              = 0.5
 
  # Mitotic somal translocation factor (value <= 0.1)
 	set Mitotic somal translocation factor            = 0.02
@@ -32,13 +35,13 @@ subsection General
         set Total time 	                                 = 10000
 
  # Time step size
-        set Time step size                                = 0.1
+        set Time step size                                = 0.125
 
  # Multiplier max iterations linear solver
         set Multiplier max iterations linear solver       = 100
 
  # Max number newton iterations
-        set Max number newton iterations                  = 8
+        set Max number newton iterations                  = 20
 
  # The tolerance wrt the normalised residual deformation
         set Tolerance residual deformation               = 1.0e-8
@@ -65,7 +68,7 @@ subsection General
         set The max cell density                         = 700
  
  # Growth rate
-        set Growth rate                                  = 4.7e-4
+        set Growth rate                                  = 4.7e-5
  
  # Growth exponent alpha
         set Growth exponent                              = 1.65
@@ -95,7 +98,7 @@ subsection General
 	set NU diffusivity				 = 0.11
 
  # Cell dvision intial value [1/(mm^2)]
-	set Cell dvision intial value                    = 10
+	set Cell dvision intial value                    = 5000
    
  # Cell migration threshold  c_0 [1/mm^3]
         set Cell migration threshold                     = 500
@@ -104,16 +107,16 @@ subsection General
         set Heaviside function exponent                  = 0.008
 
  # On which gestational day the first division phase end?
-	set First phase					 = 30
+	set First phase					 = 21
 
  # On which gestational day the second division phase end?
-	set Second phase 				= 60
+	set Second phase 				= 45
 
  # On which gestational day the third division phase end?
-	set Third phase					= 84
+	set Third phase					= 75
 
  # On which gestational day the fourth division phase end?
-	set Fourth phase 				= 120 	
+	set Fourth phase 				= 90 	
   
  # Linear solver type (CG or Direct)
         set Linear solver type                           = Direct              
@@ -167,13 +170,13 @@ subsection General
 	set NU/OR_n P5  = 0
  
 	set IP/IP_n P1  = 0
-	set IP/IP_n P2  = 0
+	set IP/IP_n P2  = 1
 	set IP/IP_n P3  = 1
 	set IP/IP_n P4  = 1
 	set IP/IP_n P5  = 0
 
 	set NU/IP_n P1  = 0
-	set NU/IP_n P2  = 0
+	set NU/IP_n P2  = 2
 	set NU/IP_n P3  = 2
 	set NU/IP_n P4  = 2
 	set NU/IP_n P5  = 4 

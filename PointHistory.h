@@ -40,11 +40,10 @@ public:
                        }
 
 
-	   void setup_lqp (const Parameter::GeneralParameters &parameter, const Point<dim> & position, const double delta_t)
+	   void setup_lqp (const Parameter::GeneralParameters &parameter, const Point<dim> & position, const double &delta_t)
 	    {
              
           p = position;
-          d_t = delta_t;
 //          a = parameter.source_deceleration_factor;
            
 //           std::vector<std::vector<int> > phase_ratio{{1,0,0,0,0},  // RG/RG_n
@@ -62,12 +61,12 @@ public:
               density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.migration_speed, parameter.diffusivity, parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
 
                 
-                 update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), std::vector<double>(4, 0), 0 , false);
+                 update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), std::vector<double>(4, 0), 0 , delta_t,  false);
 	    }
 
           void update_values (const Tensor<2, dim> &Grad_u, const std::vector<Tensor<1, dim> > &Grad_c, const std::vector<double> &c, const Tensor<2, dim> &Grad_u_n ,
                                 const Tensor<2, dim> &Grad_u_n_1,const std::vector<double> &c_n, const std::vector<double>  &c_n_1,
-                                const double &t, bool update)
+                                const double &t, const double &d_t, bool update)
     {
 
            F = (Physics::Elasticity::StandardTensors< dim >::I + Grad_u);
@@ -252,7 +251,6 @@ public:
 
 
 
-    double d_t;
     double J;
     double J_n;
     double J_n_1;
