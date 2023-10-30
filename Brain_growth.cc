@@ -2619,7 +2619,7 @@ data_out.build_patches(q_mapping ,degree );
 
 
 
-std::string name ("Output_" + Utilities::int_to_string(parameters.global_refinements,1) + "_" + Utilities::int_to_string(time.get_timestep(), 2));
+std::string name ("Output_3_" + Utilities::int_to_string(time.get_timestep(), 2));
 
 std::ofstream output(( name + ".vtk"));
 
@@ -3530,8 +3530,7 @@ int main (int argc, char* argv[])
 
     Assert(argc==3, ExcMessage("This project needs two arguments as input, the first is the name of the parameters file, and the second is the geometry dimensionality of problem 2 or 3."));
 
-
-   try
+  try
     {
        int dim = strtol(argv[2],NULL, 10);
         if (dim == 2){
@@ -3545,7 +3544,7 @@ int main (int argc, char* argv[])
             solid_3d.run();
         }
       else
-        Assert(dim<=3, ExcInternalError());
+        Assert(dim<3, ExcInternalError());
         
     }
   catch (std::exception &exc)
