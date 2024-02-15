@@ -36,7 +36,8 @@ class CellDensity
                std::vector<double> cof(4, 0);
                Tensor<2 ,dim> I = Physics::Elasticity::StandardTensors< dim >::I;
             
-               r_osvz_t = zones_radius[ISVZ]+ (c_mst) * ((time >= 10)? (time-10):((time > 20)? 10:0));
+              // r_osvz_t = zones_radius[ISVZ]+ (c_mst) * ((time >= 10)? (time-10):((time > 20)? 10:0));
+               r_osvz_t = zones_radius[ISVZ]+ (c_mst) * ((time >= phase_days[1])? (time-phase_days[1]):0);
                r_osvz_t = ((r_osvz_t> zones_radius[OSVZ])?  zones_radius[OSVZ]:r_osvz_t);
             
                Tensor<1 ,dim> N = direction_vector(p);
@@ -72,9 +73,9 @@ class CellDensity
     {
         int ph = (t < phase_days[0] ? 0 : (t < phase_days[1] ? 1 : (t < phase_days[2] ? 2 : (t < phase_days[3] ? 3 : 4))));
         sources[RG] = ((phase_ratio[0][ph]-1) * d_t)  * Old_values[RG];
-        sources[IP] = (phase_ratio[1][ph] * d_t) * Old_values[RG] + (phase_ratio[4][ph] * d_t)  * Old_values[OR] + ((phase_ratio[7][ph]-1) * d_t) * Old_values[IP];
-        sources[OR] = (phase_ratio[2][ph] * d_t)  * Old_values[RG] + ((phase_ratio[5][ph]-1) * d_t)  * Old_values[OR];
-        sources[NU] = (phase_ratio[3][ph] * d_t)  * Old_values[RG]+ (phase_ratio[6][ph] * d_t)  * Old_values[OR] + (phase_ratio[8][ph] * d_t)  * Old_values[IP];
+        sources[IP] = (phase_ratio[1][ph] *d_t ) * Old_values[RG] + (phase_ratio[4][ph] *d_t )  * Old_values[OR] + ((phase_ratio[7][ph]-1)* d_t ) * Old_values[IP];
+        sources[OR] = (phase_ratio[2][ph] * d_t)  * Old_values[RG] + ((phase_ratio[5][ph]-1) *d_t)  * Old_values[OR];
+        sources[NU] = (phase_ratio[3][ph] *d_t )  * Old_values[RG]+ (phase_ratio[6][ph] *d_t)  * Old_values[OR] + (phase_ratio[8][ph]*d_t )  * Old_values[IP];
                }
 
     
@@ -96,7 +97,7 @@ class CellDensity
             else if (dim ==3)
                 r = p.distance(Point<dim>(0.0,0.0, 0.0));
             
-            double exp = (cell_type == NU)? 10:20;
+            double exp = (cell_type == NU)? 50:20;
             double R = (cell_type == NU)? zones_radius[CR]:r_osvz_t;
             return (v[cell_type]*(1-heaviside_function((r-R),exp)));
         }
@@ -110,7 +111,7 @@ class CellDensity
                 r = p.distance(Point<dim>(0.0,0.0, 0.0));
             
             if (cell_type == NU)
-                value = d_cc[cell_type] * (heaviside_function((r-zones_radius[CR]),10));
+                value = d_cc[cell_type] * (heaviside_function((r-zones_radius[CR]),50));
 
             else if (cell_type == RG)
                 value = d_cc[cell_type] * (1-heaviside_function((r-zones_radius[VZ]),20));

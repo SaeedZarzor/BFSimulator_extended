@@ -48,7 +48,7 @@ class NeoHookeanMaterial
              r = p.distance(Point<dim>(0.0,0.0, 0.0));
          
          
-	      H = std::exp((r-R_c)*20)/(1+std::exp((r-R_c)*20));
+	      H = std::exp((r-R_c)*50)/(1+std::exp((r-R_c)*50));
           mu = mu_s + ((mu_c - mu_s) * H);
 	      dmu_dc = dmuc_dc * H;
           Lamda = (2 * mu * nu)/(1 - (2 * nu));
