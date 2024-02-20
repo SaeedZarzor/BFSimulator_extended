@@ -30,7 +30,12 @@ subsection General
  # Mitotic somal translocation factor (value <= 0.1)
 	set Mitotic somal translocation factor            = 0.02
 
-	
+ # Neurons radial function exponent
+	set Neurons radial exponent			  = 20
+
+ # Other cell types radial function exponent
+	set Other cell radial exponent			  = 10
+
  # Total time
         set Total time 	                                 = 10000
 
