@@ -54,11 +54,11 @@ public:
 //                                                         {0,0,2,2,4}}; // NU/IP_n
 
 
-              material = new NeoHookeanMaterial<dim>(parameter.stiffness_case, parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, parameter.zones_raduis[3]);
+              material = new NeoHookeanMaterial<dim>(parameter.stiffness_case, parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, parameter.NU_radial_exp ,parameter.zones_raduis[3]);
 
-              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent, parameter.zones_raduis[3]);
+              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent,  parameter.NU_radial_exp, parameter.zones_raduis[3]);
 
-              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.migration_speed, parameter.diffusivity, parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
+              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.NU_radial_exp,  parameter.radial_exp, parameter.migration_speed, parameter.diffusivity,  parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
 
                 
                  update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), std::vector<double>(4, 0), 0 , delta_t,  false);

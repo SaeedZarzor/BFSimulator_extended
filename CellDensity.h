@@ -15,10 +15,10 @@ class CellDensity
 {
      public:
        
-	CellDensity(const double &cell_migration_threshold, const double &exponent,  const double &MST_factor,
-                const std::vector<double> &cell_migration_speed, const std::vector<double> &diffusivity ,const std::vector<double> &Z_raduis,
+	CellDensity(const double &cell_migration_threshold, const double &exponent,  const double &MST_factor, const double &NU_radial_exp, const double &radial_exp,
+                const std::vector<double> &cell_migration_speed, const std::vector<double> &diffusivity,const std::vector<double> &Z_raduis,
                 const std::vector<double> P_weeks, const std::vector<std::vector<int> > P_ratios):
-        c_0(cell_migration_threshold),gamma(exponent), c_mst(MST_factor),
+        c_0(cell_migration_threshold),gamma(exponent), c_mst(MST_factor),nu_rad_exp(NU_radial_exp), rad_exp(radial_exp),
         r_osvz_t(Z_raduis[ISVZ]), v(cell_migration_speed), d_cc(diffusivity),
         zones_radius(Z_raduis), phase_days(P_weeks), phase_ratio(P_ratios),
         grad_c_s(4, Tensor<1, dim>()), first_flux_terms(4, Tensor<1, dim>()),
@@ -97,7 +97,7 @@ class CellDensity
             else if (dim ==3)
                 r = p.distance(Point<dim>(0.0,0.0, 0.0));
             
-            double exp = (cell_type == NU)? 50:20;
+            double exp = (cell_type == NU)? nu_rad_exp:rad_exp;
             double R = (cell_type == NU)? zones_radius[CR]:r_osvz_t;
             return (v[cell_type]*(1-heaviside_function((r-R),exp)));
         }
@@ -111,13 +111,13 @@ class CellDensity
                 r = p.distance(Point<dim>(0.0,0.0, 0.0));
             
             if (cell_type == NU)
-                value = d_cc[cell_type] * (heaviside_function((r-zones_radius[CR]),50));
+                value = d_cc[cell_type] * (heaviside_function((r-zones_radius[CR]), nu_rad_exp));
 
             else if (cell_type == RG)
-                value = d_cc[cell_type] * (1-heaviside_function((r-zones_radius[VZ]),20));
+                value = d_cc[cell_type] * (1-heaviside_function((r-zones_radius[VZ]),rad_exp));
 
 	    else
-                value = d_cc[cell_type] * (1-heaviside_function((r-r_osvz_t),20));
+                value = d_cc[cell_type] * (1-heaviside_function((r-r_osvz_t),rad_exp));
             return value;
         }
         
@@ -134,6 +134,8 @@ class CellDensity
         double c_0;
         double gamma;
         double c_mst;
+        double nu_rad_exp;
+        double rad_exp;
         double r_osvz_t;
     
         enum
