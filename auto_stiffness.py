@@ -3,8 +3,8 @@ import fileinput
 import sys
 
  
-nr_stiffness_ratio = ["8"]
-nr_growth_ratio = ["1"]
+nr_stiffness_ratio = ["4","5","1","2","8"]
+nr_growth_ratio = ["1","1.5","2","2.5","3"]
 
 
 make = subprocess.Popen('cmake CMakeLists.txt', shell=True)
@@ -17,8 +17,6 @@ for stiffness_ratio in nr_stiffness_ratio:
         print ("\n Stiffness rate "+stiffness_ratio+" ,growth ratio "+growth_ratio+"\n")
         print ("===================================================================================================================")
         for line in fileinput.input("Parameters.prm", inplace=1):
-            if "    set Output file name                              =" in line:
-                line = "    set Output file name                              = growth \n"
             if "        set The ratio of stiffness                       =" in line:
                 line = "        set The ratio of stiffness                       = "+stiffness_ratio+" \n"
             if "        set  Growth ratio                                ="in line:
@@ -26,8 +24,7 @@ for stiffness_ratio in nr_stiffness_ratio:
             sys.stdout.write(line)
 
         
-        a = subprocess.Popen('make run', shell=True)
-        a.wait()
+        a = subprocess.run(['./Brain_growth', 'Parameters.prm',  sys.argv[1]])
             
         folder_name = "SR" + stiffness_ratio +"_GR" + growth_ratio
         makefolder = subprocess.Popen('mkdir    '+folder_name, shell=True)

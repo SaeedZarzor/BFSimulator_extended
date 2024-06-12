@@ -1229,8 +1229,8 @@ template <int dim>
   void
   Solid<dim>::solve_nonlinear_timestep(BlockVector<double> &solution_delta, bool &CONVERGED)
   {
-    std::cout << std::endl << "Timestep " << time.get_timestep() << " @ "
-      << time.current() << " gestational day " << " @ " << std::trunc(time.current()/7)  << " gestational week "<< "@" << "  delta t "<<time.get_delta_t()<< std::endl;
+    std::cout << std::endl << "Timestep " << time.get_timestep() << " @ Current time "
+      << time.current() << " @  Gestational week" << std::trunc(0.3* time.current()+4)  << "@  delta t "<<time.get_delta_t()<< std::endl;
 
     CONVERGED = false;
     BlockVector<double> newton_update(dofs_per_block);
@@ -2433,7 +2433,8 @@ Solid<dim>::solve_linear_system(BlockVector<double> &newton_update)
 template <int dim>
 void Solid<dim>::output_results()
 {
-  
+
+    
 DataOut<dim> data_out;
 std::vector<DataComponentInterpretation::DataComponentInterpretation>
 data_component_interpretation(dim,  DataComponentInterpretation::component_is_part_of_vector);
@@ -2480,6 +2481,8 @@ velocity_projection (velocity_values);
   
 BlockVector<double> diffusion_values(dofs_per_block);
   diffusion_projection(diffusion_values);
+    
+BlockVector<double> total_cell_density(dofs_per_block);
  
 std::vector<std::string> solution_name2(dim, "vMStress");
     solution_name2.push_back("non11");
@@ -2533,6 +2536,12 @@ std::vector<std::string>  solution_name10(dim , "diffusion");
  solution_name10.push_back("non83");
  solution_name10.push_back("non84");
     
+    std::vector<std::string> solution_name11(dim, "non90");
+    solution_name11.push_back("non91");
+    solution_name11.push_back("non92");
+    solution_name11.push_back("non93");
+    solution_name11.push_back("total_cell_density");
+    
 data_out.add_data_vector(stresses_projected,
                          solution_name2,
                          DataOut<dim>::type_dof_data,
@@ -2576,7 +2585,19 @@ data_out.add_data_vector(diffusion_values,
                             solution_name10,
                             DataOut<dim>::type_dof_data,
                             data_component_interpretation);
+    
 
+
+
+for(unsigned int i=0; i< solution_n.block(c_nu_dof).size(); ++i)
+{
+    total_cell_density.block(c_nu_dof)[i] = solution_n.block(c_rg_dof)[i] + solution_n.block(c_ip_dof)[i] + solution_n.block(c_or_dof)[i] +solution_n.block(c_nu_dof)[i];
+}
+
+    data_out.add_data_vector(total_cell_density,
+                                solution_name11,
+                                DataOut<dim>::type_dof_data,
+                                data_component_interpretation);
 
 Vector<double> soln(solution_n.size());
 for (unsigned int i = 0; i < soln.size(); ++i)

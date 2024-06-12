@@ -82,8 +82,8 @@ template <int dim>
 template <int dim>
 class Growth {
    public:
-	Growth(const double &growth_rate, const double &growth_ratio, const double &growth_exponent, const double &subcortix_raduis):
-        k_s(growth_rate), b(growth_ratio), alpha_g(growth_exponent), R_c(subcortix_raduis),
+	Growth(const double &growth_rate, const double &growth_ratio, const double &growth_exponent, const double &NU_radial_exp ,const double &subcortix_raduis):
+        k_s(growth_rate), b(growth_ratio), alpha_g(growth_exponent), radial_exp(NU_radial_exp), R_c(subcortix_raduis),
         v_t(1.0),v_r(1.0), G(Tensor<2, dim>()),
         F_g(Physics::Elasticity::StandardTensors< dim >::I){}
     
@@ -114,7 +114,7 @@ class Growth {
               else if (dim ==2)
               r = p.distance(Point<dim>(0.0,0.0, 0.0));
           
-              double H  = std::exp((r-R_c)*20)/(1+std::exp((r-R_c)*20));
+              double H  = std::exp((r-R_c)*radial_exp)/(1+std::exp((r-R_c)*radial_exp));
             
    
                 k_t = k_s + (k_s *(b-1)*H);
@@ -148,6 +148,7 @@ class Growth {
 	     const double k_s;
          const double b;
          const double alpha_g;
+         const double radial_exp;
          const double R_c;
          double v_t;
          double v_r;

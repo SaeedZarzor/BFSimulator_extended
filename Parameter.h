@@ -49,15 +49,14 @@ struct GeneralParameters
     double exponent;
     double growth_exponent;
     double tol_u;
-
     double shear_modulud_cortex;
 	double stiffness_ratio;
 	double max_cell_density;
 	double MST_factor;
     double Betta;
 	double c_k;
-
-	
+    double NU_radial_exp;
+    double radial_exp;
 	
 	void declare_parameters(ParameterHandler &prm);
 	void parse_parameters(ParameterHandler &prm);
@@ -115,6 +114,14 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
 	 	prm.declare_entry ("Mitotic somal translocation factor","0.05",
 						   Patterns::Double(),
 					"Mitotic somal translocation factor (value <= 0.1)");
+        
+        prm.declare_entry ("Neurons radial exponent","50",
+                          Patterns::Double(),
+                   "Neurons radial function exponent");
+        
+        prm.declare_entry ("Other cell radial exponent","20",
+                          Patterns::Double(),
+                   "Other cell types radial function exponent");
 
 		prm.declare_entry ("Total time","1",
 						   Patterns::Double(),
@@ -328,6 +335,8 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         zones_raduis[1] = prm.get_double("Subventricular zone raduis");
         zones_raduis[2] = prm.get_double("Outer subventricular zone raduis");
         MST_factor = prm.get_double("Mitotic somal translocation factor");
+        NU_radial_exp = prm.get_double("Neurons radial exponent");
+        radial_exp = prm.get_double("Other cell radial exponent");
         dvision_value = prm.get_double("Cell dvision intial value");
         migration_speed[1] = prm.get_double("IP cell migration speed");
         migration_speed[2] = prm.get_double("ORG cell migration speed");

@@ -803,10 +803,10 @@ def set_3D_default():
     def_NU_IP_n_ph3.set(2)
     def_NU_IP_n_ph4.set(2)
     def_NU_IP_n_ph5.set(4)
-    def_first_phase.set(21)
-    def_second_phase.set(49)
-    def_third_phase.set(84)
-    def_fourth_phase.set(105)
+    def_first_phase.set(15)
+    def_second_phase.set(22)
+    def_third_phase.set(45)
+    def_fourth_phase.set(75)
     def_IP_migration.set(0.25)
     def_OR_migration.set(10)
     def_NU_migration.set(5)
@@ -1679,11 +1679,11 @@ def open_division_window():
 def open_division_time_window():
     global counter_2
     def first_trace(*args):
-        first_entry.configure(text = '%.1f'%((first_value.get()/7)+4)+" GW")
+        first_entry.configure(text = '%.1f'%((0.3*first_value.get())+4)+" GW")
         second_value.set(first_value.get())
         
     def second_trace(*args):
-        second_entry.configure(text = '%.1f'%((second_value.get()/7)+4)+" GW")
+        second_entry.configure(text = '%.1f'%((0.3*second_value.get())+4)+" GW")
         if  second_value.get()<first_value.get():
             messagebox.showerror("","The Second phase has to be after the First phase!")
             second_slider.set(first_value.get())
@@ -1692,7 +1692,7 @@ def open_division_time_window():
 
         
     def third_trace(*args):
-        third_entry.configure(text = '%.1f'%((third_value.get()/7)+4)+" GW")
+        third_entry.configure(text = '%.1f'%((0.3*third_value.get())+4)+" GW")
         if  third_value.get()<second_value.get():
             messagebox.showerror("","The Third phase has to be after the Second phase!")
             third_slider.set(second_value.get())
@@ -1700,7 +1700,7 @@ def open_division_time_window():
         fourth_value.set(third_value.get())
         
     def fourth_trace(*args):
-        fourth_entry.configure(text = '%.1f'%((fourth_value.get()/7)+4)+" GW")
+        fourth_entry.configure(text = '%.1f'%((0.3*fourth_value.get())+4)+" GW")
         if  fourth_value.get()<third_value.get():
             messagebox.showerror("","The Fourth phase has to be after the Third phase!")
             fourth_slider.set(third_value.get())
@@ -1891,7 +1891,7 @@ def cr_thickness_info(event):
 def intial_raduis_info(event):
     label_img2.configure(image=gemotry_image_R)
     label_img2.place(relx=0.2, rely=0.5, anchor=tk.CENTER)
-    info_label.configure(text="Initial fetal brain radius at gestational week 24 in [mm].")
+    info_label.configure(text="Initial fetal brain radius at gestational week 5 in [mm].")
     info_label.place(relx=0.4, rely=0.1, anchor='nw')
 
 def MST_factor_info(event):

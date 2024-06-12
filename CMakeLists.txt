@@ -23,7 +23,7 @@ SET(TARGET_SRC
 
 # Usually, you will not need to modify anything beyond this point...
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.27.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.27.7)
 
 
 FIND_PACKAGE(deal.II 9.4 QUIET
@@ -36,7 +36,6 @@ IF(NOT ${deal.II_FOUND})
     "or set an environment variable \"DEAL_II_DIR\" that contains this path."
     )
 ENDIF()
-
 
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
