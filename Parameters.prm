@@ -22,15 +22,14 @@ subsection General
         set Ventricular zone raduis                       = 0.15
 
  # Subventricular zone raduis as a ratio to initial radius (value between ventricular zone raduis and 0.6)
-	set Subventricular zone raduis                    = 0.3
+	set Subventricular zone raduis                       = 0.3
 
  # Outer subventricular zone raduis as a ratio to initial radius (value between Subventricular ventricular zone raduis and 0.6)
-	set Outer subventricular zone raduis              = 0.5
+	set Outer subventricular zone raduis                 = 0.5
 
  # Mitotic somal translocation factor (value <= 0.1)
-	set Mitotic somal translocation factor            = 0.02
+	set Mitotic somal translocation factor               = 0.02
 
-	
  # Total time
         set Total time 	                                 = 10000
 
@@ -62,7 +61,9 @@ subsection General
         set The shear modulus of conrtex                 = 2.07
 
  # The ratio of stiffness between cortex and subcortex  mu_cmax/mu_smax
-        set The ratio of stiffness                       = 6 
+
+        set The ratio of stiffness                       = 3
+
 
  # The max cell density where the stiffness still constant c_max
         set The max cell density                         = 700
@@ -74,16 +75,16 @@ subsection General
         set Growth exponent                              = 1.65
 
  # Growth ratio
-        set  Growth ratio                                = 2.5 
+        set  Growth ratio                                = 3
 
  # Intermediate progenitor cell migration speed  [mm/wk]
-	set IP cell migration speed			 = 0.25
+	set IP cell migration speed			     = 0.25
 
  # Outer radial glia cell migration speed  [mm/wk]
 	set ORG cell migration speed			 = 10
 
  # Neurons cell migration speed  [mm/wk]
-	set NU cell migration speed			 = 5
+	set NU cell migration speed		    	 = 5
 
  # Radial glia cells diffusivity  d^cc [mm^2/wk]
 	set RG diffusivity				 = 0.1
@@ -98,7 +99,7 @@ subsection General
 	set NU diffusivity				 = 0.11
 
  # Cell dvision intial value [1/(mm^2)]
-	set Cell dvision intial value                    = 1000
+	set Cell dvision intial value                        = 1000
    
  # Cell migration threshold  c_0 [1/mm^3]
         set Cell migration threshold                     = 500
@@ -122,7 +123,7 @@ subsection General
 	set Neurons radial exponent                     = 50
 
  # Other cell types radial function exponent
-	set Other cell radial exponent			= 20
+	set Other cell radial exponent		           	= 20
 
  # Linear solver type (CG or Direct)
         set Linear solver type                          = Direct              
@@ -131,7 +132,7 @@ subsection General
         set Stabilization constant                      = 0.1
 
  # c_k factor (CFL condition)
-        set c_k factor                                  =0.33334 
+        set c_k factor                                  =0.33334
 
 	set RG/RG_n P1	= 2
 	set RG/RG_n P2  = 1
