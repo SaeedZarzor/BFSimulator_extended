@@ -28,17 +28,14 @@ subsection General
 	set Outer subventricular zone raduis                 = 0.5
 
  # Mitotic somal translocation factor (value <= 0.1)
-<<<<<<< Updated upstream
 	set Mitotic somal translocation factor               = 0.02
-=======
-	set Mitotic somal translocation factor            = 0.02
+
 
  # Neurons radial function exponent
 	set Neurons radial exponent			  = 50
 
  # Other cell types radial function exponent
 	set Other cell radial exponent			  = 20
->>>>>>> Stashed changes
 
  # Total time
         set Total time 	                                 = 10000
@@ -71,13 +68,7 @@ subsection General
         set The shear modulus of conrtex                 = 2.07
 
  # The ratio of stiffness between cortex and subcortex  mu_cmax/mu_smax
-<<<<<<< Updated upstream
-
         set The ratio of stiffness                       = 3
-
-=======
-        set The ratio of stiffness                       = 3 
->>>>>>> Stashed changes
 
  # The max cell density where the stiffness still constant c_max
         set The max cell density                         = 700
@@ -89,11 +80,7 @@ subsection General
         set Growth exponent                              = 1.65
 
  # Growth ratio
-<<<<<<< Updated upstream
         set  Growth ratio                                = 3
-=======
-        set  Growth ratio                                = 1.5 
->>>>>>> Stashed changes
 
  # Intermediate progenitor cell migration speed  [mm/wk]
 	set IP cell migration speed			     = 0.25
