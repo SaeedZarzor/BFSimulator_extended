@@ -1,22 +1,20 @@
- /* ---------------------------------------------------------------------
- *
- * Copyright (C) 2010 - 2015 by the deal.II authors and
- *                              & Jean-Paul Pelteret and Andrew McBride
- *
- * This file is part of the deal.II library.
- *
- * The deal.II library is free software; you can use it, redistribute
- * it, and/or modify it under the terms of the GNU Lesser General
- * Public License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * The full text of the license can be found in the file LICENSE at
- * the top level of the deal.II distribution.
+/* ---------------------------------------------------------------------
+*
+* Copyright (C) 2019 - 2024 by the deal.II authors and Mohammad Saeed Zarzor
+*
+* The deal.II library is free software; you can use it, redistribute
+* it, and/or modify it under the terms of the GNU Lesser General
+* Public License as published by the Free Software Foundation; either
+* version 2.1 of the License, or (at your option) any later version.
+* The full text of the license can be found in the file LICENSE at
+* the top level of the deal.II distribution.
+*
  *
  * ---------------------------------------------------------------------
 
  *
- * Authors: Jean-Paul Pelteret, University of Cape Town,
- *          Andrew McBride, University of Erlangen-Nuremberg, 2010
+  * Authors: Mohammad Saeed Zarzor , University of Erlangen-Nuremberg, 2023
+
  */
 
 
@@ -932,13 +930,24 @@ template <int dim>
     
     else if (dim ==3){
         const Point<dim> Center (0.0, 0.0,0.0);
-        GridGenerator::half_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
-        global_Omega_diameter = GridTools::diameter(triangulation);
-        GridTools::transform (Rotate3d<dim>(angle, 2), triangulation);
+
+        if (parameters.three_D_geometry == "quarter")
+        {
+            GridGenerator::quarter_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
+        }
+        
+        else if (parameters.three_D_geometry == "half")
+        {
+            GridGenerator::half_hyper_shell(triangulation, Center, 0.2*parameters.initial_radius , 1.0*parameters.initial_radius,0,true);
+            GridTools::transform (Rotate3d<dim>(angle, 2), triangulation);
+        }
+        
         const SphericalManifold<dim> manifold(Center);
         triangulation.set_all_manifold_ids_on_boundary(0);
         triangulation.refine_global(std::max (1U, parameters.global_refinements));
+        global_Omega_diameter = GridTools::diameter(triangulation);
         triangulation.set_manifold (0, manifold);
+
 
     }
     else
@@ -1953,12 +1962,13 @@ template <int dim>
 
 
 
-  template <int dim>
-  void Solid<dim>::make_constraints(const int &it_nr)
+template <int dim>
+void Solid<dim>::make_constraints(const int &it_nr)
 {
   std::cout << " CST " << std::flush;
 
-    if (dim==2){
+    if (dim==2)
+    {
         if (it_nr > 1)
             return;
         constraints.clear();
@@ -2033,7 +2043,8 @@ template <int dim>
         }
     }
   
-    else if (dim==3){
+    else if (dim==3)
+    {
         if (it_nr > 1)
           return;
         constraints.clear();
@@ -2043,54 +2054,126 @@ template <int dim>
         const FEValuesExtractors::Scalar y_displacement(1);
         const FEValuesExtractors::Scalar z_displacement(2);
         
-        
+        if (parameters.three_D_geometry =="quarter")
         {
+            {
                 const int boundary_id = 2;
-
-            if (apply_dirichlet_bc == true)
-            {
-                VectorTools::interpolate_boundary_values(dof_handler_ref,
-                                                        boundary_id,
-                                                        ZeroFunction<dim>(n_components),
-                                                        constraints,
-                                                        fe.component_mask(y_displacement));
+                
+                if (apply_dirichlet_bc == true)
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(x_displacement));
+                    
+                }
+                else
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(x_displacement));
+                    
+                }
+            } // for half geomtery y_displacement
             
-            }
-            else
             {
-                 VectorTools::interpolate_boundary_values(dof_handler_ref,
-                                                                                        boundary_id,
-                                                         ZeroFunction<dim>(n_components),
-                                                        constraints,
-                                                        fe.component_mask(y_displacement));
-
+                const int boundary_id = 3;
+                
+                if (apply_dirichlet_bc == true)
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(y_displacement));
+                    
+                }
+                else
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(y_displacement));
+                    
+                }
             }
-        } // for half geomtery
-
-        {
-            const int boundary_id = 0;
-            if (apply_dirichlet_bc == true)
+            
             {
-                VectorTools::interpolate_boundary_values(dof_handler_ref,
-                                                        boundary_id,
-                                                        ZeroFunction<dim>(n_components),
-                                                        constraints,
-                                                        fe.component_mask(displacement));
-            }
-            else
-            {
-                VectorTools::interpolate_boundary_values(dof_handler_ref,
-                                                        boundary_id,
-                                                        ZeroFunction<dim>(n_components),
-                                                        constraints,
-                                                        fe.component_mask(displacement));
+                const int boundary_id = 4;
+                
+                if (apply_dirichlet_bc == true)
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(z_displacement));
+                    
+                }
+                else
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(z_displacement));
+                    
+                }
             }
         }
-        
+        else if (parameters.three_D_geometry =="half")
+        {
+                const int boundary_id = 2;
+                
+                if (apply_dirichlet_bc == true)
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(y_displacement));
+                    
+                }
+                else
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(y_displacement));
+                    
+                }
+        }
+            
+            {
+                const int boundary_id = 0;
+                if (apply_dirichlet_bc == true)
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(displacement));
+                }
+                else
+                {
+                    VectorTools::interpolate_boundary_values(dof_handler_ref,
+                                                             boundary_id,
+                                                             ZeroFunction<dim>(n_components),
+                                                             constraints,
+                                                             fe.component_mask(displacement));
+                }
+            }
+            
     }
 
   constraints.close();
 }
+
 
 
   template <int dim>
@@ -2457,66 +2540,66 @@ data_out.add_data_vector(solution_n,
                          DataOut<dim>::type_dof_data,
                          data_component_interpretation);
 
- BlockVector<double> stresses_projected(dofs_per_block);
- Vector<double> stresses_averaged(triangulation.n_active_cells());
- compute_stress_projection_and_average (stresses_projected,stresses_averaged);
+// BlockVector<double> stresses_projected(dofs_per_block);
+// Vector<double> stresses_averaged(triangulation.n_active_cells());
+// compute_stress_projection_and_average (stresses_projected,stresses_averaged);
 
- BlockVector<double> sptial_density_grads(dofs_per_block);
- sptial_density_grads_projection(sptial_density_grads);
+// BlockVector<double> sptial_density_grads(dofs_per_block);
+// sptial_density_grads_projection(sptial_density_grads);
   
- BlockVector<double> growth_norm(dofs_per_block);
- compute_growth_norm_projection(growth_norm);
+// BlockVector<double> growth_norm(dofs_per_block);
+// compute_growth_norm_projection(growth_norm);
 
- BlockVector<double> Stiffness(dofs_per_block);
- compute_Stiffness_projection(Stiffness);
+// BlockVector<double> Stiffness(dofs_per_block);
+// compute_Stiffness_projection(Stiffness);
 
-BlockVector<double>    growth_factor(dofs_per_block);
-growth_factor_projection (growth_factor);
+//BlockVector<double>    growth_factor(dofs_per_block);
+//growth_factor_projection (growth_factor);
   
 //BlockVector<double>    source_terms(dofs_per_block);
 //source_terms_projection (source_terms);
   
-BlockVector<double>    velocity_values(dofs_per_block);
-velocity_projection (velocity_values);
+//BlockVector<double>    velocity_values(dofs_per_block);
+//velocity_projection (velocity_values);
   
-BlockVector<double> diffusion_values(dofs_per_block);
-  diffusion_projection(diffusion_values);
+//BlockVector<double> diffusion_values(dofs_per_block);
+//  diffusion_projection(diffusion_values);
     
 BlockVector<double> total_cell_density(dofs_per_block);
  
-std::vector<std::string> solution_name2(dim, "vMStress");
-    solution_name2.push_back("non11");
-    solution_name2.push_back("non12");
-    solution_name2.push_back("non13");
-    solution_name2.push_back("non14");
+//std::vector<std::string> solution_name2(dim, "vMStress");
+//    solution_name2.push_back("non11");
+//    solution_name2.push_back("non12");
+//    solution_name2.push_back("non13");
+//    solution_name2.push_back("non14");
 
 
-std::vector<std::string> solution_name3(1, "vMStress_averaged");
+//std::vector<std::string> solution_name3(1, "vMStress_averaged");
   
-std::vector<std::string>  solution_name4(dim , "sptial_density_grads");
-      solution_name4.push_back("non21");
-      solution_name4.push_back("non22");
-      solution_name4.push_back("non23");
-      solution_name4.push_back("non24");
+//std::vector<std::string>  solution_name4(dim , "sptial_density_grads");
+//      solution_name4.push_back("non21");
+//      solution_name4.push_back("non22");
+//      solution_name4.push_back("non23");
+//      solution_name4.push_back("non24");
 
 
-std::vector<std::string>  solution_name5(dim , "growth_factor");
-    solution_name5.push_back("non31");
-    solution_name5.push_back("non32");
-    solution_name5.push_back("non33");
-    solution_name5.push_back("non34");
+//std::vector<std::string>  solution_name5(dim , "growth_factor");
+//    solution_name5.push_back("non31");
+//    solution_name5.push_back("non32");
+//    solution_name5.push_back("non33");
+//    solution_name5.push_back("non34");
 
-std::vector<std::string>  solution_name6(dim , "growth_norm");
-    solution_name6.push_back("non41");
-    solution_name6.push_back("non42");
-    solution_name6.push_back("non43");
-    solution_name6.push_back("non44");
+//std::vector<std::string>  solution_name6(dim , "growth_norm");
+//    solution_name6.push_back("non41");
+//    solution_name6.push_back("non42");
+//    solution_name6.push_back("non43");
+//    solution_name6.push_back("non44");
 
-std::vector<std::string>  solution_name7(dim , "Stiffness");
-    solution_name7.push_back("non51");
-    solution_name7.push_back("non52");
-    solution_name7.push_back("non53");
-    solution_name7.push_back("non54");
+//std::vector<std::string>  solution_name7(dim , "Stiffness");
+//    solution_name7.push_back("non51");
+//    solution_name7.push_back("non52");
+//    solution_name7.push_back("non53");
+//    solution_name7.push_back("non54");
   
 //std::vector<std::string>  solution_name8(dim , "source_terms");
 //    solution_name8.push_back("non61");
@@ -2524,17 +2607,17 @@ std::vector<std::string>  solution_name7(dim , "Stiffness");
 //    solution_name8.push_back("non63");
 //    solution_name8.push_back("non64");
 
-std::vector<std::string>  solution_name9(dim , "velocity");
-  solution_name9.push_back("non71");
-  solution_name9.push_back("non72");
-  solution_name9.push_back("non73");
-  solution_name9.push_back("non74");
+//std::vector<std::string>  solution_name9(dim , "velocity");
+//  solution_name9.push_back("non71");
+//  solution_name9.push_back("non72");
+//  solution_name9.push_back("non73");
+//  solution_name9.push_back("non74");
     
-std::vector<std::string>  solution_name10(dim , "diffusion");
- solution_name10.push_back("non81");
- solution_name10.push_back("non82");
- solution_name10.push_back("non83");
- solution_name10.push_back("non84");
+//std::vector<std::string>  solution_name10(dim , "diffusion");
+// solution_name10.push_back("non81");
+// solution_name10.push_back("non82");
+// solution_name10.push_back("non83");
+// solution_name10.push_back("non84");
     
     std::vector<std::string> solution_name11(dim, "non90");
     solution_name11.push_back("non91");
@@ -2542,49 +2625,49 @@ std::vector<std::string>  solution_name10(dim , "diffusion");
     solution_name11.push_back("non93");
     solution_name11.push_back("total_cell_density");
     
-data_out.add_data_vector(stresses_projected,
-                         solution_name2,
-                         DataOut<dim>::type_dof_data,
-                         data_component_interpretation);
+//data_out.add_data_vector(stresses_projected,
+//                         solution_name2,
+//                         DataOut<dim>::type_dof_data,
+//                         data_component_interpretation);
 
-data_out.add_data_vector(stresses_averaged,
-                         solution_name3,
-                         DataOut<dim>::type_cell_data);
+//data_out.add_data_vector(stresses_averaged,
+//                         solution_name3,
+//                         DataOut<dim>::type_cell_data);
 
-  data_out.add_data_vector(sptial_density_grads,
-                           solution_name4,
-                           DataOut<dim>::type_dof_data,
-                           data_component_interpretation);
+//  data_out.add_data_vector(sptial_density_grads,
+//                           solution_name4,
+//                           DataOut<dim>::type_dof_data,
+//                           data_component_interpretation);
   
-data_out.add_data_vector(growth_factor,
-                         solution_name5,
-                         DataOut<dim>::type_dof_data,
-                         data_component_interpretation);
+//data_out.add_data_vector(growth_factor,
+//                         solution_name5,
+//                         DataOut<dim>::type_dof_data,
+//                         data_component_interpretation);
   
-data_out.add_data_vector(growth_norm,
-                         solution_name6,
-                         DataOut<dim>::type_dof_data,
-                         data_component_interpretation);
+//data_out.add_data_vector(growth_norm,
+//                         solution_name6,
+//                         DataOut<dim>::type_dof_data,
+//                         data_component_interpretation);
 
-data_out.add_data_vector(Stiffness,
-                         solution_name7,
-                         DataOut<dim>::type_dof_data,
-                         data_component_interpretation);
+//data_out.add_data_vector(Stiffness,
+//                         solution_name7,
+//                         DataOut<dim>::type_dof_data,
+//                         data_component_interpretation);
   
 //data_out.add_data_vector(source_terms,
 //                        solution_name8,
 //                        DataOut<dim>::type_dof_data,
 //                        data_component_interpretation);
   
-data_out.add_data_vector(velocity_values,
-                        solution_name9,
-                        DataOut<dim>::type_dof_data,
-                        data_component_interpretation);
-  
-data_out.add_data_vector(diffusion_values,
-                            solution_name10,
-                            DataOut<dim>::type_dof_data,
-                            data_component_interpretation);
+//data_out.add_data_vector(velocity_values,
+//                        solution_name9,
+//                        DataOut<dim>::type_dof_data,
+//                        data_component_interpretation);
+//  
+//data_out.add_data_vector(diffusion_values,
+//                            solution_name10,
+//                            DataOut<dim>::type_dof_data,
+//                            data_component_interpretation);
     
 
 

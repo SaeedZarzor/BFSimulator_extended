@@ -23,6 +23,7 @@ struct GeneralParameters
 	std::string output_file_name;
     std::string solver_type;
     std::string stiffness_case;
+    std::string three_D_geometry;
     std::vector<double> zones_raduis;
     std::vector<double> migration_speed;
     std::vector<double> diffusivity;
@@ -55,7 +56,7 @@ struct GeneralParameters
 	double MST_factor;
     double Betta;
 	double c_k;
-    double NU_radial_exp;
+    double cp_radial_exp;
     double radial_exp;
 	
 	void declare_parameters(ParameterHandler &prm);
@@ -82,6 +83,10 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
 		prm.declare_entry ("Poly degree","1",
 						   Patterns::Integer(),
 				"The polynomial degree of the FE");
+        
+        prm.declare_entry ("3D geometry shape", "half",
+                            Patterns::Anything(),
+                            "3D geometry shape quarter or half");
         
 		prm.declare_entry ("Number global refinements","1",
 						   Patterns::Integer(),
@@ -115,13 +120,13 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
 						   Patterns::Double(),
 					"Mitotic somal translocation factor (value <= 0.1)");
         
-        prm.declare_entry ("Neurons radial exponent","50",
+        prm.declare_entry ("Cortex radial exponent","50",
                           Patterns::Double(),
-                   "Neurons radial function exponent");
+                   "Cortex radial function exponent");
         
-        prm.declare_entry ("Other cell radial exponent","20",
+        prm.declare_entry ("Other radial exponent","20",
                           Patterns::Double(),
-                   "Other cell types radial function exponent");
+                   "Other radial function exponent");
 
 		prm.declare_entry ("Total time","1",
 						   Patterns::Double(),
@@ -150,7 +155,7 @@ void GeneralParameters::declare_parameters(ParameterHandler &prm)
 						   Patterns::Double(),
 						   "The tolerance wrt the normalised residual norm");
         
-        prm.declare_entry("The state of the stiffness","Varying",
+        prm.declare_entry("The state of the stiffness","Constant",
                           Patterns::Anything(),
                           "The state of the stiffness Constant or Varying");
         
@@ -316,6 +321,7 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         tolerance_residual_u=prm.get_double("Tolerance residual deformation");
         tolerance_residual_c=prm.get_double("Tolerance residual diffusion");
         global_refinements =prm.get_integer("Number global refinements");
+        three_D_geometry = prm.get("3D geometry shape");
         Poisson=prm.get_double("Poisson's ratio");
         shear_modulud_cortex=prm.get_double("The shear modulus of conrtex");
         stiffness_ratio=prm.get_double("The ratio of stiffness");
@@ -335,8 +341,8 @@ void GeneralParameters::parse_parameters (ParameterHandler &prm)
         zones_raduis[1] = prm.get_double("Subventricular zone raduis");
         zones_raduis[2] = prm.get_double("Outer subventricular zone raduis");
         MST_factor = prm.get_double("Mitotic somal translocation factor");
-        NU_radial_exp = prm.get_double("Neurons radial exponent");
-        radial_exp = prm.get_double("Other cell radial exponent");
+        cp_radial_exp = prm.get_double("Cortex radial exponent");
+        radial_exp = prm.get_double("Other radial exponent");
         dvision_value = prm.get_double("Cell dvision intial value");
         migration_speed[1] = prm.get_double("IP cell migration speed");
         migration_speed[2] = prm.get_double("ORG cell migration speed");

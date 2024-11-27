@@ -82,8 +82,8 @@ template <int dim>
 template <int dim>
 class Growth {
    public:
-	Growth(const double &growth_rate, const double &growth_ratio, const double &growth_exponent, const double &NU_radial_exp ,const double &subcortix_raduis):
-        k_s(growth_rate), b(growth_ratio), alpha_g(growth_exponent), radial_exp(NU_radial_exp), R_c(subcortix_raduis),
+	Growth(const double &growth_rate, const double &growth_ratio, const double &growth_exponent, const double &cp_radial_exp ,const double &subcortix_raduis):
+        k_s(growth_rate), b(growth_ratio), alpha_g(growth_exponent), radial_exp(cp_radial_exp), R_c(subcortix_raduis),
         v_t(1.0),v_r(1.0), G(Tensor<2, dim>()),
         F_g(Physics::Elasticity::StandardTensors< dim >::I){}
     

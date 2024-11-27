@@ -44,21 +44,14 @@ public:
 	    {
              
           p = position;
-//          a = parameter.source_deceleration_factor;
-           
-//           std::vector<std::vector<int> > phase_ratio{{1,0,0,0,0},  // RG/RG_n
-//                                                         {0,1,0,0,0},  // IP/Rg_n
-//                                                         {0,0,1,1,0},  // IP/OR_n
-//                                                         {0,0,0,0,1},  // IP/IP_n
-//                                                         {0,0,1,0,0},  // OR/RG_n
-//                                                         {0,0,2,2,4}}; // NU/IP_n
 
 
-              material = new NeoHookeanMaterial<dim>(parameter.stiffness_case, parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, parameter.NU_radial_exp ,parameter.zones_raduis[3]);
 
-              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent,  parameter.NU_radial_exp, parameter.zones_raduis[3]);
+              material = new NeoHookeanMaterial<dim>(parameter.stiffness_case, parameter.shear_modulud_cortex, parameter.Poisson, parameter.stiffness_ratio, parameter.max_cell_density, parameter.cp_radial_exp ,parameter.zones_raduis[3]);
 
-              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.NU_radial_exp,  parameter.radial_exp, parameter.migration_speed, parameter.diffusivity,  parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
+              growth   = new Growth<dim>(parameter.growth_rate, parameter.growth_ratio, parameter.growth_exponent,  parameter.cp_radial_exp, parameter.zones_raduis[3]);
+
+              density  = new CellDensity<dim>(parameter.cell_migration_threshold, parameter.exponent, parameter.MST_factor, parameter.cp_radial_exp,  parameter.radial_exp, parameter.migration_speed, parameter.diffusivity,  parameter.zones_raduis,parameter.phase_days, parameter.phase_ratio);
 
                 
                  update_values (Tensor<2, dim>(), std::vector<Tensor<1, dim> >(4, Tensor<1, dim>()), std::vector<double>(4, 0) , Tensor<2, dim>(), Tensor<2, dim>(), std::vector<double>(4, 0), std::vector<double>(4, 0), 0 , delta_t,  false);
