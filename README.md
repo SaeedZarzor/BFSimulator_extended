@@ -6,7 +6,7 @@ This project consists of two primary components. The first and main component is
 
 Below, you'll find a step-by-step guide for setting up, installing, and configuring the project. If you don't plan to use the second component (the user interface), you may skip directly to the "Configuration without Python3" section.
 
-**Note:** This project is based on the model introduced in the paper [[Multi-field_2024]].
+**Note:** This project is based on the model introduced in the paper "Zarzor, M. S., Ma, Q., Almurey, M., Kainz, B., & Budday, S. (2024). Exploring the role of different cell types on cortical folding in the developing human brain through computational modeling. Scientific Reports, 14(1), 26103".
 
 ## Setup and Installation
 
