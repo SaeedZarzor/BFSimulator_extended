@@ -165,3 +165,4 @@ To start the simulation:
 ```
 
 For 3D simulations, replace `2` with `3`. Modify simulation parameters directly in the `Parameters.prm` file.
+
