@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+install_manifest.txt
+build/
+out/
+
+# Compiled binary
+Brain_growth
+
+# Object/build artifacts
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+
+# Simulation output
+*.vtk
+*.vtu
+*.pvtu
+*.pvd
+*.h5
+*.xdmf
+sparsity_patteren.svg
+timeing.csv
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc

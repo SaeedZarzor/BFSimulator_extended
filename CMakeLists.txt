@@ -23,7 +23,7 @@ SET(TARGET_SRC
 
 # Usually, you will not need to modify anything beyond this point...
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.27.7)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.27.6)
 
 
 FIND_PACKAGE(deal.II 9.4 QUIET
@@ -38,8 +38,16 @@ IF(NOT ${deal.II_FOUND})
 ENDIF()
 
 
+
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(${TARGET})
 DEAL_II_INVOKE_AUTOPILOT()
+
+if(APPLE)
+  add_custom_command(TARGET ${TARGET} POST_BUILD
+    COMMAND ${CMAKE_SOURCE_DIR}/fix_dylib_deps.sh $<TARGET_FILE:${TARGET}>
+    COMMENT "Rewriting bare-basename dylib deps to absolute paths"
+  )
+endif()
 
 
